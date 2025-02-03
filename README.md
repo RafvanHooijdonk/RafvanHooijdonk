@@ -1,4 +1,4 @@
-<h4 align="left">💫 About Me:<br><br>🔭 I'm currently working on: My Bachelor's in Computer Science at <a href="https://www.avans.nl/studeren/opleidingen/informatica/voltijd" target="_blank">Avans University</a>.<br>👯 I'm looking to collaborate on: Tech & software projects.<br>🤝 I'm looking for help with: Expanding my programming skills.<br>🌱 I'm currently learning: Software development, hardware, Cyber Security and AI.<br>💬 Ask me about: Logistics, light/sound technology, and coding.<br>⚡ Fun fact: Light & sound tech and coding are my passions!</h4>
+<h4 align="left">💫 About Me:<br><br>🔭 I'm currently working on: My Bachelor's in Computer Science at <a href="https://www.avans.nl/studeren/opleidingen/informatica/voltijd" target="_blank">Avans University</a>.<br>🧑‍💻 I'm looking to collaborate on: Tech & software projects.<br>🤝 I'm looking for help with: Expanding my programming skills.<br>📚 I'm currently learning: Software development, hardware, Cyber Security and AI.<br>💬 Ask me about: Logistics, light/sound technology, and coding.<br>⚡ Fun fact: Light & sound tech and coding are my passions!</h4>
 
 ###
 
