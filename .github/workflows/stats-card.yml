@@ -26,5 +26,5 @@ jobs:
           git config user.email github-actions@github.com
           git add assets/stats-*.svg assets/tools-*.svg STATS.md
           if git commit -m "Update stats and tooling cards"; then
-            git push
+            git pull --rebase && git push
           fi

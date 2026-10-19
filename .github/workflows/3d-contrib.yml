@@ -25,5 +25,5 @@ jobs:
           git config user.email github-actions@github.com
           git add -A .
           if git commit -m "Update 3D contribution graph"; then
-            git push
+            git pull --rebase && git push
           fi
