@@ -18,6 +18,7 @@ jobs:
           # METRICS_TOKEN (personal token) also counts private repos, GITHUB_TOKEN is the fallback
           GITHUB_TOKEN: ${{ secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.repository_owner }}
+          SETTING_JSON: 3d-settings.json
       - name: Commit & push
         run: |
           git config user.name github-actions

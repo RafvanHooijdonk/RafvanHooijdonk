@@ -26,16 +26,18 @@
 ### `02 // Projects`
 
 <p>
-  <a href="https://mijnuren.rafvanhooijdonk.nl">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="./assets/card-mijn-uren-dark.svg" />
-      <img src="./assets/card-mijn-uren-light.svg" width="49%" alt="Mijn Uren" />
-    </picture>
-  </a>
-  <picture>
+  <a href="https://alpha-stock.com"><picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/card-alphastock-dark.svg" />
+    <img src="./assets/card-alphastock-light.svg" width="32.5%" alt="AlphaStock" />
+  </picture></a>
+  <a href="https://mijnuren.rafvanhooijdonk.nl"><picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/card-mijn-uren-dark.svg" />
+    <img src="./assets/card-mijn-uren-light.svg" width="32.5%" alt="Mijn Uren" />
+  </picture></a>
+  <a href="https://platecollector.rafvanhooijdonk.nl"><picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/card-platecollector-dark.svg" />
-    <img src="./assets/card-platecollector-light.svg" width="49%" alt="PlateCollector" />
-  </picture>
+    <img src="./assets/card-platecollector-light.svg" width="32.5%" alt="PlateCollector" />
+  </picture></a>
 </p>
 
 <picture>
@@ -45,21 +47,21 @@
 
 ### `03 // Activity`
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./profile-3d-contrib/profile-night-view.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="./profile-3d-contrib/profile-green.svg" />
-  <img src="./profile-3d-contrib/profile-night-view.svg" width="100%" alt="3D contribution graph" />
-</picture>
+<img src="./profile-3d-contrib/profile-rvh.svg" width="100%" alt="3D contribution graph" />
 
+<a href="./STATS.md">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/stats-dark.svg" />
   <img src="./assets/stats-light.svg" width="100%" alt="Languages and contribution numbers" />
 </picture>
+</a>
 
+<a href="./STATS.md">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/tools-dark.svg" />
   <img src="./assets/tools-light.svg" width="100%" alt="Tooling and testing detected in my repositories" />
 </picture>
+</a>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/RafvanHooijdonk/RafvanHooijdonk/output/github-snake-dark.svg" />

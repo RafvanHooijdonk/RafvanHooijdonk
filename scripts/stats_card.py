@@ -9,6 +9,8 @@ TOKEN = os.environ["GH_TOKEN"]
 # Notebooks are huge because of stored output, and shader/markup files say little about the code written.
 IGNORED = {"Jupyter Notebook", "ShaderLab", "HLSL", "Dockerfile", "Procfile", "Batchfile", "PowerShell", "Shell"}
 TOP = 6
+# Organisations whose repositories are my own work too (my own startup), counted like personal repos.
+EXTRA_ORGS = ["Alpha-Stock"]
 DEVICON = "https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons/{0}/{0}-{1}.svg"
 LOGOS = {  # GitHub language name -> devicon folder and variant
     "TypeScript": ("typescript", "original"), "JavaScript": ("javascript", "original"),
@@ -49,21 +51,32 @@ query($after: String) {
   }
 }"""
 
-def gql(after=None):
+ORG_QUERY = """
+query($org: String!, $after: String) {
+  organization(login: $org) {
+    repositories(first: 100, after: $after, isFork: false) {
+      totalCount
+      pageInfo { hasNextPage endCursor }
+      nodes { name owner { login } defaultBranchRef { name } languages(first: 20, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name color } } } }
+    }
+  }
+}"""
+
+def gql(after=None, query=QUERY, **extra):
     req = urllib.request.Request("https://api.github.com/graphql",
-        data=json.dumps({"query": QUERY, "variables": {"after": after}}).encode(),
+        data=json.dumps({"query": query, "variables": {"after": after, **extra}}).encode(),
         headers={"Authorization": f"bearer {TOKEN}", "Content-Type": "application/json"})
     with urllib.request.urlopen(req) as r:
         body = json.load(r)
     if "errors" in body:
         raise SystemExit(body["errors"])
-    return body["data"]["viewer"]
+    return body["data"]["viewer"] if query is QUERY else body["data"]["organization"]
 
-langs, colors, after, repo_count, repo_refs = {}, {}, None, 0, []
-while True:
-    v = gql(after)
-    repos = v["repositories"]
-    repo_count = repos["totalCount"]
+langs, colors, repo_count, repo_refs = {}, {}, 0, []
+
+def take(repos):
+    global repo_count
+    repo_count += len(repos["nodes"])
     for n in repos["nodes"]:
         if n["defaultBranchRef"]:
             repo_refs.append((n["owner"]["login"], n["name"], n["defaultBranchRef"]["name"]))
@@ -73,10 +86,23 @@ while True:
                 continue
             langs[name] = langs.get(name, 0) + e["size"]
             colors[name] = e["node"]["color"] or "#64748b"
-    if not repos["pageInfo"]["hasNextPage"]:
+
+after = None
+while True:
+    v = gql(after)
+    take(v["repositories"])
+    if not v["repositories"]["pageInfo"]["hasNextPage"]:
         break
-    after = repos["pageInfo"]["endCursor"]
+    after = v["repositories"]["pageInfo"]["endCursor"]
 cc = v["contributionsCollection"]
+for org in EXTRA_ORGS:
+    after = None
+    while True:
+        repos = gql(after, ORG_QUERY, org=org)["repositories"]
+        take(repos)
+        if not repos["pageInfo"]["hasNextPage"]:
+            break
+        after = repos["pageInfo"]["endCursor"]
 
 total = sum(langs.values()) or 1
 ranked = sorted(langs.items(), key=lambda kv: -kv[1])
@@ -91,7 +117,7 @@ numbers = [
     (f'{cc["contributionCalendar"]["totalContributions"]:,}', "contributions"),
     (f'{cc["totalCommitContributions"] + cc["restrictedContributionsCount"]:,}', "commits incl. private"),
     (f'{cc["totalPullRequestContributions"]:,}', "pull requests"),
-    (f'{repo_count:,}', "own repositories"),
+    (f'{repo_count:,}', "repositories"),
 ]
 
 def b64(p): return base64.b64encode(open(os.path.join(ROOT, p), "rb").read()).decode()
@@ -243,7 +269,7 @@ def tool_logo(folder, variant):
     return tool_logo_cache[key]
 
 def tools_card(t):
-    rows = [(g, sorted([n for n in found if TOOLS[n][0] == g], key=lambda n: (-found[n], n))[:6]) for g in GROUPS]
+    rows = [(g, sorted([n for n in found if TOOLS[n][0] == g], key=lambda n: (-found[n], n))[:5]) for g in GROUPS]
     rows = [(g, items) for g, items in rows if items]
     W, rh = 1000, 64
     H = 70 + len(rows) * rh + 14
@@ -261,7 +287,7 @@ def tools_card(t):
         if g == "Testing" and test_files:
             o.append(f'<text x="32" y="{y+48}" class="m" font-size="10.5" fill="{SKY}">{test_files:,} test files</text>')
         for k, n in enumerate(items):
-            x = 176 + k * 136
+            x = 176 + k * 158
             lg = tool_logo(*TOOLS[n][1:])
             o.append(f'<rect x="{x-4}" y="{y+14}" width="34" height="34" rx="8" fill="{t["tile"]}" stroke="{t["line"]}"/>')
             o.append(f'<image href="{lg}" x="{x+2}" y="{y+20}" width="22" height="22"/>' if lg
@@ -276,6 +302,21 @@ for name, t in THEMES.items():
         f.write(card(t))
     with open(os.path.join(ROOT, "assets", f"tools-{name}.svg"), "w") as f:
         f.write(tools_card(t))
+# Details page behind the cards: full lists, since an image in a README cannot show tooltips.
+import datetime
+md = ["# Languages and tooling", "",
+      f"Updated {datetime.date.today():%d %B %Y}. Counted over my own repositories and {', '.join(EXTRA_ORGS)}, forks excluded.", "",
+      "## Languages", "", "| Language | Share |", "| --- | --- |"]
+md += [f"| {n} | {s / total * 100:.1f}% |" for n, s in ranked]
+md += ["", f"Not counted: {', '.join(sorted(IGNORED))}.", "", "## Tooling and testing", "",
+       f"{test_files:,} test files found.", ""]
+for g in GROUPS:
+    items = sorted([n for n in found if TOOLS[n][0] == g], key=lambda n: (-found[n], n))
+    if items:
+        md += [f"### {g}", "", "| Tool | Repositories |", "| --- | --- |"] + [f"| {n} | {found[n]} |" for n in items] + [""]
+md += ["[Back to profile](./README.md)", ""]
+with open(os.path.join(ROOT, "STATS.md"), "w") as f:
+    f.write("\n".join(md))
 print("test files:", test_files)
 print("tools:", ", ".join(f"{n} {c}" for n, c in sorted(found.items(), key=lambda kv: -kv[1])))
 print("languages:", ", ".join(f"{n} {f*100:.1f}%" for n, f, _ in parts))

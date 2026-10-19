@@ -1,0 +1,21 @@
+{
+  "type": "normal",
+  "fileName": "profile-rvh.svg",
+  "backgroundColor": "#ffffff",
+  "foregroundColor": "#0f172a",
+  "strongColor": "#8b5cf6",
+  "weakColor": "#94a3b8",
+  "radarColor": "#0ea5e9",
+  "growingAnimation": true,
+  "contribColors": ["#e2e8f0", "#bae6fd", "#38bdf8", "#0ea5e9", "#8b5cf6"],
+  "darkMode": {
+    "type": "normal",
+    "backgroundColor": "#0d1117",
+    "foregroundColor": "#e2e8f0",
+    "strongColor": "#a78bfa",
+    "weakColor": "#64748b",
+    "radarColor": "#0ea5e9",
+    "growingAnimation": true,
+    "contribColors": ["#1e293b", "#0c4a6e", "#0369a1", "#0ea5e9", "#8b5cf6"]
+  }
+}
