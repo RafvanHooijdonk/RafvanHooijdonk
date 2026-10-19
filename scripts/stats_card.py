@@ -210,19 +210,10 @@ CANON = {"vite": "vitejs"}
 SPECIAL = {"xunit": ("xUnit", "Testing"), "nunit": ("NUnit", "Testing"), "mstest": ("MSTest", "Testing"),
            "efcore": ("EF Core", "Data & AI")}
 NUGET_SPECIAL = {"xunit": "xunit", "nunit": "nunit", "mstest.testframework": "mstest", "microsoft.entityframeworkcore": "efcore"}
-PRETTY = {"githubactions": "GitHub Actions", "dotnetcore": ".NET", "nestjs": "NestJS", "nextjs": "Next.js",
-          "vitejs": "Vite", "vitest": "Vitest", "tailwindcss": "Tailwind", "cypressio": "Cypress", "mysql": "MySQL",
-          "postgresql": "PostgreSQL", "numpy": "NumPy", "scikitlearn": "scikit-learn", "pytorch": "PyTorch",
-          "tensorflow": "TensorFlow", "opencv": "OpenCV", "fastapi": "FastAPI", "eslint": "ESLint", "rxjs": "RxJS",
-          "socketio": "Socket.IO", "typeorm": "TypeORM", "sqlalchemy": "SQLAlchemy", "mongodb": "MongoDB",
-          "graphql": "GraphQL", "nodemon": "Nodemon", "githubcodespaces": "Codespaces", "azuredevops": "Azure DevOps",
-          "amazonwebservices": "AWS", "googlecloud": "Google Cloud", "nginx": "NGINX", "reactrouter": "React Router",
-          "threejs": "Three.js", "d3js": "D3.js", "jquery": "jQuery", "phpstorm": "PhpStorm", "redux": "Redux",
-          "huggingface": "Hugging Face", "keras": "Keras", "matplotlib": "Matplotlib", "jupyter": "Jupyter",
-          "framermotion": "Framer Motion", "materialui": "Material UI", "postcss": "PostCSS",
-          "influxdb": "InfluxDB", "nodemon": "nodemon", "swagger": "Swagger", "axios": "Axios",
-          "mongoose": "Mongoose", "blazor": "Blazor", "bootstrap": "Bootstrap", "redis": "Redis",
-          "kubernetes": "Kubernetes", "terraform": "Terraform", "playwright": "Playwright", "selenium": "Selenium"}
+# Display names for every tool in the catalogue, so a newly detected tool is spelled right at once.
+# A tool the catalogue adds later falls back to its catalogue name; add it to tool-names.json then.
+with open(os.path.join(ROOT, "scripts", "tool-names.json")) as f:
+    PRETTY = json.load(f)
 GROUP_FIX = {"vitejs": "Frameworks", "eslint": "DevOps", "githubactions": "DevOps", "jupyter": "Data & AI",
              "pandas": "Data & AI", "numpy": "Data & AI", "supabase": "Data & AI", "prisma": "Data & AI",
              "typeorm": "Data & AI", "sqlalchemy": "Data & AI", "nodemon": "DevOps", "unity": "Frameworks",
@@ -295,7 +286,7 @@ for owner, name, branch in repo_refs:
         lp = p.lower()
         hits |= {k for test, k in PATH_RULES if test(lp)}
     manifests = [p for p in paths if p.rsplit("/", 1)[-1].lower() in ("package.json", "requirements.txt", "pyproject.toml") or p.lower().endswith(".csproj")]
-    for p in manifests[:20]:
+    for p in manifests[:50]:
         try:
             text = rest(f"/repos/{owner}/{name}/contents/{urllib.parse.quote(p)}?ref={urllib.parse.quote(branch)}", raw=True)
         except urllib.error.HTTPError:

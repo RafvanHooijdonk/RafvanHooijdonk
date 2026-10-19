@@ -28,7 +28,7 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 | Jest | 3 |
 | Vitest | 2 |
 | Cypress | 1 |
-| Pytest | 1 |
+| pytest | 1 |
 
 ### DevOps
 
