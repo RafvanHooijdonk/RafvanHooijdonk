@@ -37,6 +37,9 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 | GitHub Actions | 17 |
 | Docker | 7 |
 | ESLint | 5 |
+| nodemon | 3 |
+| NGINX | 1 |
+| Swagger | 1 |
 
 ### Frameworks
 
@@ -45,11 +48,19 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 | .NET | 5 |
 | NestJS | 5 |
 | React | 5 |
+| RxJS | 5 |
 | Vite | 5 |
 | FastAPI | 3 |
+| Axios | 2 |
 | Express | 2 |
+| Mongoose | 2 |
 | Tailwind | 2 |
 | Unity | 2 |
+| Blazor | 1 |
+| Bootstrap | 1 |
+| Framer Motion | 1 |
+| Material UI | 1 |
+| PostCSS | 1 |
 
 ### Data & AI
 
@@ -61,7 +72,9 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 | scikit-learn | 3 |
 | Jupyter | 2 |
 | EF Core | 1 |
+| InfluxDB | 1 |
 | OpenCV | 1 |
 | PyTorch | 1 |
+| SQLAlchemy | 1 |
 
 [Back to profile](./README.md)
