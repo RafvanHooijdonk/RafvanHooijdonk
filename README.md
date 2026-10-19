@@ -30,11 +30,11 @@
     <source media="(prefers-color-scheme: dark)" srcset="./assets/card-alphastock-dark.svg" />
     <img src="./assets/card-alphastock-light.svg" width="32.5%" alt="AlphaStock" />
   </picture></a>
-  <a href="https://mijnuren.rafvanhooijdonk.nl"><picture>
+  <a href="#02--projects"><picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/card-mijn-uren-dark.svg" />
     <img src="./assets/card-mijn-uren-light.svg" width="32.5%" alt="Mijn Uren" />
   </picture></a>
-  <a href="https://platecollector.rafvanhooijdonk.nl"><picture>
+  <a href="#02--projects"><picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/card-platecollector-dark.svg" />
     <img src="./assets/card-platecollector-light.svg" width="32.5%" alt="PlateCollector" />
   </picture></a>

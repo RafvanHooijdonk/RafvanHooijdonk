@@ -2,7 +2,7 @@
 
 Runs in the 'Stats card' workflow with GH_TOKEN (a personal token, so private repos count).
 """
-import base64, json, os, re, urllib.error, urllib.parse, urllib.request
+import base64, json, math, os, re, urllib.error, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOKEN = os.environ["GH_TOKEN"]
@@ -131,30 +131,41 @@ THEMES = {
     "light": dict(panel="#ffffff", line="#e2e8f0", fg="#0f172a", sub="#475569", mute="#64748b", track="#f1f5f9", tile="#f8fafc"),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
+# Donut colours by rank, from sky to violet, so the card stays in the README palette
+DONUT = ["#0ea5e9", "#38bdf8", "#7dd3fc", "#6366f1", "#8b5cf6", "#c4b5fd", "#94a3b8"]
 
 def card(t):
     W, H = 1000, 250
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
-         f'<defs><linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
-         f'<clipPath id="bar"><rect x="32" y="74" width="560" height="10" rx="5"/></clipPath></defs>',
+         f'<defs><linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient></defs>',
          f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="16" fill="{t["panel"]}" stroke="{t["line"]}"/>',
          f'<rect x="32" y="0.5" width="48" height="2" fill="url(#ac)"/>',
-         f'<text x="32" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LANGUAGES</text>',
-         f'<rect x="32" y="74" width="560" height="10" rx="5" fill="{t["track"]}"/>', '<g clip-path="url(#bar)">']
-    x = 32.0
+         f'<text x="32" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LANGUAGES</text>']
+    # donut: one circle per language, drawn with a dash on a shared ring
+    cx, cy, r, sw = 112, 146, 64, 22
+    circ = 2 * math.pi * r
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{t["track"]}" stroke-width="{sw}"/>')
+    start = 0.0
     for i, (n, f, c) in enumerate(parts):
-        w = 560 * f
-        o.append(f'<rect x="{x:.2f}" y="74" width="{w:.2f}" height="10" fill="{c}">'
-                 f'<animate attributeName="width" values="0;0;{w:.2f}" keyTimes="0;{min(0.9, 0.15*i):.2f};1" dur="{0.6+0.15*i:.2f}s"/></rect>')
-        x += w
-    o.append('</g>')
+        seg = max(circ * f - 2, 0.6)  # small gap between segments
+        col = DONUT[i] if n != "Other" else "#94a3b8"
+        o.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{col}" stroke-width="{sw}" '
+                 f'stroke-dasharray="{seg:.2f} {circ:.2f}" stroke-dashoffset="{-start:.2f}" transform="rotate(-90 {cx} {cy})">'
+                 f'<animate attributeName="stroke-dasharray" values="0 {circ:.2f};0 {circ:.2f};{seg:.2f} {circ:.2f}" '
+                 f'keyTimes="0;{min(0.85, 0.12*i):.2f};1" dur="{0.7+0.12*i:.2f}s"/></circle>')
+        start += circ * f
+    top_name, top_share, _ = parts[0]
+    o.append(f'<text x="{cx}" y="{cy+4}" text-anchor="middle" class="s" font-size="22" fill="{t["fg"]}">{top_share*100:.0f}%</text>'
+             f'<text x="{cx}" y="{cy+22}" text-anchor="middle" class="m" font-size="10" fill="{t["sub"]}">{top_name}</text>')
     for i, (n, f, c) in enumerate(parts):
-        col, row = i % 2, i // 2
-        lx, ly = 32 + col * 290, 122 + row * 32
-        mark = (f'<image href="{logos[n]}" x="{lx}" y="{ly-15}" width="20" height="20"/>' if logos[n]
-                else f'<circle cx="{lx+10}" cy="{ly-5}" r="5" fill="{c}"/>')
-        o.append(mark + f'<text x="{lx+30}" y="{ly}" class="i" font-size="14" fill="{t["fg"]}">{n}</text>'
-                 f'<text x="{lx+262}" y="{ly}" class="m" font-size="12.5" fill="{t["sub"]}" text-anchor="end">{f*100:.1f}%</text>')
+        col, row = i // 4, i % 4
+        lx, ly = 228 + col * 200, 92 + row * 34
+        swatch = DONUT[i] if n != "Other" else "#94a3b8"
+        mark = (f'<image href="{logos[n]}" x="{lx+12}" y="{ly-15}" width="20" height="20"/>' if logos[n]
+                else f'<circle cx="{lx+22}" cy="{ly-5}" r="5" fill="{swatch}"/>')
+        o.append(f'<rect x="{lx}" y="{ly-15}" width="4" height="20" rx="2" fill="{swatch}"/>' + mark
+                 + f'<text x="{lx+42}" y="{ly}" class="i" font-size="14" fill="{t["fg"]}">{n}</text>'
+                 f'<text x="{lx+178}" y="{ly}" class="m" font-size="12.5" fill="{t["sub"]}" text-anchor="end">{f*100:.1f}%</text>')
     o.append(f'<line x1="640" y1="32" x2="640" y2="{H-32}" stroke="{t["line"]}"/>')
     o.append(f'<text x="672" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LAST 12 MONTHS</text>')
     for i, (num, label) in enumerate(numbers):
