@@ -19,6 +19,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.repository_owner }}
           SETTING_JSON: 3d-settings.json
+      - name: Remove language pie
+        run: python3 scripts/trim_3d.py profile-3d-contrib/profile-rvh.svg
       - name: Commit & push
         run: |
           git config user.name github-actions
