@@ -154,9 +154,6 @@ def card(t):
                  f'<animate attributeName="stroke-dasharray" values="0 {circ:.2f};0 {circ:.2f};{seg:.2f} {circ:.2f}" '
                  f'keyTimes="0;{min(0.85, 0.12*i):.2f};1" dur="{0.7+0.12*i:.2f}s"/></circle>')
         start += circ * f
-    top_name, top_share, _ = parts[0]
-    o.append(f'<text x="{cx}" y="{cy+4}" text-anchor="middle" class="s" font-size="22" fill="{t["fg"]}">{top_share*100:.0f}%</text>'
-             f'<text x="{cx}" y="{cy+22}" text-anchor="middle" class="m" font-size="10" fill="{t["sub"]}">{top_name}</text>')
     for i, (n, f, c) in enumerate(parts):
         col, row = i // 4, i % 4
         lx, ly = 228 + col * 200, 92 + row * 34
