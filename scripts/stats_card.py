@@ -362,11 +362,60 @@ def tools_card(t):
     o.append('</svg>')
     return "\n".join(o)
 
+# ---------- stack: languages and tools, filled automatically ----------
+# Languages by share, then tools found in at least two repositories, then a few things that
+# never show up in code (editor, platforms, services used in repos outside this count).
+STACK_MIN_REPOS = 2
+STACK_EXTRA = [("Git", "git", "original"), ("GitHub", "github", "original"), ("VS Code", "vscode", "original"),
+               ("Supabase", "supabase", "original"), ("Azure", "azure", "original"),
+               ("Windows", "windows11", "original"), ("macOS", "apple", "original")]
+
+def stack_items():
+    items, seen = [], set()
+    for n, f, c in parts:
+        if n != "Other" and logos.get(n):
+            items.append((n, logos[n]))
+            seen.add(n)
+    tools = sorted([k for k in found if found[k] >= STACK_MIN_REPOS], key=lambda k: (-found[k], INFO[k][0].lower()))
+    for k in tools:
+        label, _, folder, variant = INFO[k]
+        lg = tool_logo(folder, variant)
+        if lg and label not in seen:
+            items.append((label, lg))
+            seen.add(label)
+    for label, folder, variant in STACK_EXTRA:
+        lg = tool_logo(folder, variant)
+        if lg and label not in seen:
+            items.append((label, lg))
+            seen.add(label)
+    return items
+
+def stack_card(t, items):
+    per_row, cell = 12, 78
+    rows = (len(items) + per_row - 1) // per_row
+    W = 1000
+    H = rows * 84 + 8
+    x0 = (W - per_row * cell) / 2 + (cell - 52) / 2
+    o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS]
+    for i, (label, lg) in enumerate(items):
+        r, c = divmod(i, per_row)
+        x, y = x0 + c * cell, 4 + r * 84
+        delay = 0.04 * i
+        o.append(f'<g opacity="1"><animate attributeName="opacity" values="0;0;1" keyTimes="0;{delay/(delay+0.4):.3f};1" dur="{delay+0.4:.2f}s"/>'
+                 f'<rect x="{x:.1f}" y="{y}" width="52" height="52" rx="12" fill="{t["tile"]}" stroke="{t["line"]}"/>'
+                 f'<image href="{lg}" x="{x+11:.1f}" y="{y+11}" width="30" height="30"/>'
+                 f'<text x="{x+26:.1f}" y="{y+70}" text-anchor="middle" class="m" font-size="10" fill="{t["sub"]}">{label.replace("&", "&amp;")}</text></g>')
+    o.append('</svg>')
+    return "\n".join(o)
+
+STACK = stack_items()
 for name, t in THEMES.items():
     with open(os.path.join(ROOT, "assets", f"stats-{name}.svg"), "w") as f:
         f.write(card(t))
     with open(os.path.join(ROOT, "assets", f"tools-{name}.svg"), "w") as f:
         f.write(tools_card(t))
+    with open(os.path.join(ROOT, "assets", f"stack-{name}.svg"), "w") as f:
+        f.write(stack_card(t, STACK))
 # Details page behind the cards: full lists, since an image in a README cannot show tooltips.
 import datetime
 md = ["# Languages and tooling", "",
@@ -382,6 +431,7 @@ for g in GROUPS:
 md += ["[Back to profile](./README.md)", ""]
 with open(os.path.join(ROOT, "STATS.md"), "w") as f:
     f.write("\n".join(md))
+print("stack:", ", ".join(l for l, _ in STACK))
 print("test files:", test_files)
 for g in GROUPS:
     print(f"{g}:", ", ".join(f"{INFO[k][0]} {found[k]}" for k in in_group(g)))

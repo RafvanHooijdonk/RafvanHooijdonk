@@ -14,11 +14,10 @@
 
 ### `01 // Stack`
 
-<p>
-  <img src="https://skillicons.dev/icons?i=ts,js,cs,python,react,nestjs,nodejs,dotnet,tailwind,vite&perline=10" alt="Languages and frameworks" />
-  <br/><br/>
-  <img src="https://skillicons.dev/icons?i=postgres,mysql,supabase,azure,git,github,vscode,unity,windows,apple&perline=10" alt="Databases and tools" />
-</p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/stack-dark.svg" />
+  <img src="./assets/stack-light.svg" width="100%" alt="Languages, frameworks and tools I use" />
+</picture>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/divider-dark.svg" />

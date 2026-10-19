@@ -24,7 +24,7 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add assets/stats-*.svg assets/tools-*.svg STATS.md
+          git add assets/stats-*.svg assets/tools-*.svg assets/stack-*.svg STATS.md
           if git commit -m "Update stats and tooling cards"; then
             git pull --rebase && git push
           fi
