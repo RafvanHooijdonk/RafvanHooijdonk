@@ -51,12 +51,15 @@
   <img src="./profile-3d-contrib/profile-night-view.svg" width="100%" alt="3D contribution graph" />
 </picture>
 
-<p>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://streak-stats.demolab.com?user=RafvanHooijdonk&theme=dark&hide_border=true&background=00000000&ring=0EA5E9&fire=8B5CF6&currStreakLabel=0EA5E9" />
-    <img src="https://streak-stats.demolab.com?user=RafvanHooijdonk&hide_border=true&background=00000000&ring=0EA5E9&fire=8B5CF6&currStreakLabel=0EA5E9" width="60%" alt="Streak" />
-  </picture>
-</p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/stats-dark.svg" />
+  <img src="./assets/stats-light.svg" width="100%" alt="Languages and contribution numbers" />
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/tools-dark.svg" />
+  <img src="./assets/tools-light.svg" width="100%" alt="Tooling and testing detected in my repositories" />
+</picture>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/RafvanHooijdonk/RafvanHooijdonk/output/github-snake-dark.svg" />
