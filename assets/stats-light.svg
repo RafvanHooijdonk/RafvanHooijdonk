@@ -6,10 +6,10 @@
 <text x="32" y="44" class="m" font-size="11" fill="#0ea5e9" letter-spacing="1.8">LANGUAGES</text>
 <rect x="32" y="74" width="560" height="10" rx="5" fill="#f1f5f9"/>
 <g clip-path="url(#bar)">
-<rect x="32.00" y="74" width="253.87" height="10" fill="#3178c6"><animate attributeName="width" values="0;0;253.87" keyTimes="0;0.00;1" dur="0.60s"/></rect>
-<rect x="285.87" y="74" width="144.93" height="10" fill="#f1e05a"><animate attributeName="width" values="0;0;144.93" keyTimes="0;0.15;1" dur="0.75s"/></rect>
-<rect x="430.80" y="74" width="63.89" height="10" fill="#3572A5"><animate attributeName="width" values="0;0;63.89" keyTimes="0;0.30;1" dur="0.90s"/></rect>
-<rect x="494.69" y="74" width="48.86" height="10" fill="#e34c26"><animate attributeName="width" values="0;0;48.86" keyTimes="0;0.45;1" dur="1.05s"/></rect>
+<rect x="32.00" y="74" width="253.85" height="10" fill="#3178c6"><animate attributeName="width" values="0;0;253.85" keyTimes="0;0.00;1" dur="0.60s"/></rect>
+<rect x="285.85" y="74" width="144.92" height="10" fill="#f1e05a"><animate attributeName="width" values="0;0;144.92" keyTimes="0;0.15;1" dur="0.75s"/></rect>
+<rect x="430.78" y="74" width="63.92" height="10" fill="#3572A5"><animate attributeName="width" values="0;0;63.92" keyTimes="0;0.30;1" dur="0.90s"/></rect>
+<rect x="494.69" y="74" width="48.85" height="10" fill="#e34c26"><animate attributeName="width" values="0;0;48.85" keyTimes="0;0.45;1" dur="1.05s"/></rect>
 <rect x="543.55" y="74" width="35.66" height="10" fill="#663399"><animate attributeName="width" values="0;0;35.66" keyTimes="0;0.60;1" dur="1.20s"/></rect>
 <rect x="579.21" y="74" width="8.59" height="10" fill="#7355dd"><animate attributeName="width" values="0;0;8.59" keyTimes="0;0.75;1" dur="1.35s"/></rect>
 <rect x="587.80" y="74" width="4.20" height="10" fill="#64748b"><animate attributeName="width" values="0;0;4.20" keyTimes="0;0.90;1" dur="1.50s"/></rect>
@@ -24,7 +24,7 @@
 <line x1="640" y1="32" x2="640" y2="218" stroke="#e2e8f0"/>
 <text x="672" y="44" class="m" font-size="11" fill="#0ea5e9" letter-spacing="1.8">LAST 12 MONTHS</text>
 <text x="672" y="104" class="s" font-size="30" fill="#0f172a">929</text><text x="672" y="126" class="i" font-size="12.5" fill="#475569">contributions</text>
-<text x="832" y="104" class="s" font-size="30" fill="#0f172a">919</text><text x="832" y="126" class="i" font-size="12.5" fill="#475569">commits incl. private</text>
-<text x="672" y="186" class="s" font-size="30" fill="#0f172a">6</text><text x="672" y="208" class="i" font-size="12.5" fill="#475569">pull requests</text>
+<text x="832" y="104" class="s" font-size="30" fill="#0f172a">765</text><text x="832" y="126" class="i" font-size="12.5" fill="#475569">commits incl. private</text>
+<text x="672" y="186" class="s" font-size="30" fill="#0f172a">32</text><text x="672" y="208" class="i" font-size="12.5" fill="#475569">pull requests</text>
 <text x="832" y="186" class="s" font-size="30" fill="#0f172a">27</text><text x="832" y="208" class="i" font-size="12.5" fill="#475569">repositories</text>
 </svg>
