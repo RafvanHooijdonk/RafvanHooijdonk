@@ -1,8 +1,10 @@
+<a href="https://rafvanhooijdonk.nl">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/hero-dark.svg" />
   <source media="(prefers-color-scheme: light)" srcset="./assets/hero-light.svg" />
   <img src="./assets/hero-dark.svg" width="100%" alt="Raf van Hooijdonk, fullstack developer" />
 </picture>
+</a>
 
 <p align="center">
   <a href="https://rafvanhooijdonk.nl"><img src="https://img.shields.io/badge/Website-rafvanhooijdonk.nl-0EA5E9?style=flat-square&logo=googlechrome&logoColor=white" alt="Website" /></a>
