@@ -27,10 +27,13 @@ jobs:
           # Define the output files and their configurations
           # Same five levels as the 3D graph: slate, light sky, sky, deep sky, violet. Snake in the green of the LIVE labels
           outputs: |
-            dist/github-snake.svg?color_snake=#22c55e&color_dots=#e2e8f0,#bae6fd,#38bdf8,#0ea5e9,#8b5cf6
-            dist/github-snake-dark.svg?palette=github-dark&color_snake=#22c55e&color_dots=#1e293b,#0c4a6e,#0369a1,#0ea5e9,#8b5cf6
+            dist/github-snake.svg?color_snake=#22c55e&color_dot_border=#0f172a14&color_dots=#e2e8f0,#bae6fd,#38bdf8,#0ea5e9,#8b5cf6
+            dist/github-snake-dark.svg?palette=github-dark&color_snake=#22c55e&color_dot_border=#ffffff14&color_dots=#1e293b,#0c4a6e,#0369a1,#0ea5e9,#8b5cf6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Faster loop and rounder dots, the action itself only takes colours
+      - name: Tune snake animation
+        run: python3 scripts/tune_snake.py dist/github-snake.svg dist/github-snake-dark.svg
       # Step 3: Deploy the generated files to the 'output' branch
       - name: Deploy to Output Branch
         uses: peaceiris/actions-gh-pages@v3
