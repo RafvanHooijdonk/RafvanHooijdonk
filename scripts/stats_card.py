@@ -401,6 +401,8 @@ STACK_EXTRA = [("Git", "git", "original", "DevOps"), ("GitHub", "github", "origi
                ("VS Code", "vscode", "original", "Tools"), ("Windows", "windows11", "original", "Tools"),
                ("macOS", "apple", "original", "Tools")]
 STACK_GROUPS = ["Languages", "Frameworks", "Data & AI", "Testing", "DevOps", "Tools"]
+# development helpers: real tools, but not what a tech stack is made of (still on the tooling card)
+STACK_SKIP = {"nodemon", "postcss", "babel"}
 
 def brand(folder, fallback=SKY):
     e = CATALOG.get(folder)
@@ -435,6 +437,8 @@ def stack_items():
     tools = sorted([k for k in found if found[k] >= STACK_MIN_REPOS], key=lambda k: (-found[k], INFO[k][0].lower()))
     most = max([found[k] for k in tools] + [1])
     for k in tools:
+        if k in STACK_SKIP:
+            continue
         label, group, folder, variant = INFO[k]
         lg = tool_logo(folder, variant)
         if lg and label not in seen:
