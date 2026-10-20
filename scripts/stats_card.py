@@ -334,6 +334,16 @@ for owner, name, branch in repo_refs:
     for h in detect(paths, texts):
         found[h] = found.get(h, 0) + 1
 
+# repositories the workflow cannot reach (work repos under another account): only their
+# tool names, read on Raf's machine with scripts/local_repo_tools.py
+extra_path = os.path.join(ROOT, "scripts", "extra-repos.json")
+EXTRA_REPOS = json.load(open(extra_path)) if os.path.exists(extra_path) else []
+for extra in EXTRA_REPOS:
+    for h in extra["tools"]:
+        if h in CATALOG or h in SPECIAL:
+            found[h] = found.get(h, 0) + 1
+    test_files += extra.get("test_files", 0)
+
 GROUPS = ["Testing", "DevOps", "Frameworks", "Data & AI"]
 INFO = {k: info(k) for k in found}
 tool_logo_cache = {}
@@ -438,15 +448,15 @@ def stack_items():
     return {g: items for g, items in groups.items() if items}
 
 def stack_card(t, groups):
-    """One grid of equal tiles: tiles pop in one by one; a light wave glides diagonally over
-    the grid every few seconds; one tile at a time flips like a card to show how much it is used."""
+    """One grid of equal tiles: tiles pop in one by one, then a light wave glides diagonally
+    over the grid every few seconds."""
     items = [it for g in STACK_GROUPS for it in groups.get(g, [])]
     per_row, cell, TILE = 12, 78, 52
     rows = (len(items) + per_row - 1) // per_row
     W, H = 1000, rows * 88 + 14
     x0 = (W - per_row * cell) / 2 + (cell - TILE) / 2
     intro_end = 0.3 + len(items) * 0.035 + 0.5
-    flippers = [i for i, it in enumerate(items) if it[2]]           # only tiles with a number flip
+    flippers = []                                                   # flipping switched off
     SLOT, TURN, HOLD = 2.6, 0.22, 1.6                               # seconds per flip, half turn, back side shown
     loop = max(1, len(flippers)) * SLOT
     WAVE, wave_peak = 6.0, t.get("wave", "0.5")
@@ -599,7 +609,8 @@ for name, t in THEMES.items():
 # Details page behind the cards: full lists, since an image in a README cannot show tooltips.
 import datetime
 md = ["# Languages and tooling", "",
-      f"Updated {datetime.date.today():%d %B %Y}. Counted over my own repositories and {', '.join(EXTRA_ORGS)}, forks excluded.", "",
+      f"Updated {datetime.date.today():%d %B %Y}. Counted over my own repositories, {', '.join(EXTRA_ORGS)}"
+      + (f" and {', '.join(e['name'] for e in EXTRA_REPOS)} (tools only)" if EXTRA_REPOS else "") + ", forks excluded.", "",
       "## Languages", "", "| Language | Share |", "| --- | --- |"]
 md += [f"| {n} | {s / total * 100:.1f}% |" for n, s in ranked]
 md += ["", f"Not counted: {', '.join(sorted(IGNORED))}.", "", "## Tooling and testing", "",

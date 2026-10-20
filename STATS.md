@@ -1,6 +1,6 @@
 # Languages and tooling
 
-Updated 20 October 2026. Counted over my own repositories and Alpha-Stock, forks excluded.
+Updated 20 October 2026. Counted over my own repositories, Alpha-Stock and FleetBuddy (tools only), forks excluded.
 
 ## Languages
 
@@ -19,42 +19,43 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 ## Tooling and testing
 
-690 test files found.
+815 test files found.
 
 ### Testing
 
 | Tool | Repositories |
 | --- | --- |
-| Jest | 3 |
-| Vitest | 2 |
+| Jest | 4 |
+| Vitest | 3 |
 | Cypress | 1 |
+| Playwright | 1 |
 | pytest | 1 |
 
 ### DevOps
 
 | Tool | Repositories |
 | --- | --- |
-| GitHub Actions | 17 |
+| GitHub Actions | 18 |
 | Docker | 7 |
-| ESLint | 5 |
+| ESLint | 6 |
 | nodemon | 3 |
+| Swagger | 2 |
 | NGINX | 1 |
-| Swagger | 1 |
 
 ### Frameworks
 
 | Tool | Repositories |
 | --- | --- |
+| NestJS | 6 |
+| React | 6 |
+| RxJS | 6 |
+| Vite | 6 |
 | .NET | 5 |
-| NestJS | 5 |
-| React | 5 |
-| RxJS | 5 |
-| Vite | 5 |
+| Express | 3 |
 | FastAPI | 3 |
+| Tailwind | 3 |
 | Axios | 2 |
-| Express | 2 |
 | Mongoose | 2 |
-| Tailwind | 2 |
 | Unity | 2 |
 | Blazor | 1 |
 | Bootstrap | 1 |
@@ -76,5 +77,6 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 | OpenCV | 1 |
 | PyTorch | 1 |
 | SQLAlchemy | 1 |
+| Supabase | 1 |
 
 [Back to profile](./README.md)

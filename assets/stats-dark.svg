@@ -5,10 +5,10 @@
 <rect x="32" y="0.5" width="48" height="2" fill="url(#ac)"/>
 <text x="32" y="44" class="m" font-size="11" fill="#0ea5e9" letter-spacing="1.8">LANGUAGES</text>
 <circle cx="112" cy="146" r="64" fill="none" stroke="#0f172a" stroke-width="22"/>
-<circle cx="112" cy="146" r="64" fill="none" stroke="#0ea5e9" stroke-width="22" stroke-dasharray="179.98 402.12" stroke-dashoffset="-0.00" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;179.98 402.12" keyTimes="0;0.00;1" dur="0.70s"/></circle>
-<circle cx="112" cy="146" r="64" fill="none" stroke="#38bdf8" stroke-width="22" stroke-dasharray="102.03 402.12" stroke-dashoffset="-181.98" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;102.03 402.12" keyTimes="0;0.12;1" dur="0.82s"/></circle>
-<circle cx="112" cy="146" r="64" fill="none" stroke="#7dd3fc" stroke-width="22" stroke-dasharray="44.48 402.12" stroke-dashoffset="-286.01" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;44.48 402.12" keyTimes="0;0.24;1" dur="0.94s"/></circle>
-<circle cx="112" cy="146" r="64" fill="none" stroke="#6366f1" stroke-width="22" stroke-dasharray="32.96 402.12" stroke-dashoffset="-332.48" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;32.96 402.12" keyTimes="0;0.36;1" dur="1.06s"/></circle>
+<circle cx="112" cy="146" r="64" fill="none" stroke="#0ea5e9" stroke-width="22" stroke-dasharray="179.97 402.12" stroke-dashoffset="-0.00" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;179.97 402.12" keyTimes="0;0.00;1" dur="0.70s"/></circle>
+<circle cx="112" cy="146" r="64" fill="none" stroke="#38bdf8" stroke-width="22" stroke-dasharray="102.02 402.12" stroke-dashoffset="-181.97" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;102.02 402.12" keyTimes="0;0.12;1" dur="0.82s"/></circle>
+<circle cx="112" cy="146" r="64" fill="none" stroke="#7dd3fc" stroke-width="22" stroke-dasharray="44.50 402.12" stroke-dashoffset="-285.99" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;44.50 402.12" keyTimes="0;0.24;1" dur="0.94s"/></circle>
+<circle cx="112" cy="146" r="64" fill="none" stroke="#6366f1" stroke-width="22" stroke-dasharray="32.96 402.12" stroke-dashoffset="-332.49" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;32.96 402.12" keyTimes="0;0.36;1" dur="1.06s"/></circle>
 <circle cx="112" cy="146" r="64" fill="none" stroke="#8b5cf6" stroke-width="22" stroke-dasharray="23.53 402.12" stroke-dashoffset="-367.44" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;23.53 402.12" keyTimes="0;0.48;1" dur="1.18s"/></circle>
 <circle cx="112" cy="146" r="64" fill="none" stroke="#c4b5fd" stroke-width="22" stroke-dasharray="4.15 402.12" stroke-dashoffset="-392.97" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;4.15 402.12" keyTimes="0;0.60;1" dur="1.30s"/></circle>
 <circle cx="112" cy="146" r="64" fill="none" stroke="#94a3b8" stroke-width="22" stroke-dasharray="1.00 402.12" stroke-dashoffset="-399.12" transform="rotate(-90 112 146)"><animate attributeName="stroke-dasharray" values="0 402.12;0 402.12;1.00 402.12" keyTimes="0;0.72;1" dur="1.42s"/></circle>
@@ -21,8 +21,8 @@
 <rect x="428" y="145" width="4" height="20" rx="2" fill="#94a3b8"/><circle cx="450" cy="155" r="5" fill="#94a3b8"/><text x="470" y="160" class="i" font-size="14" fill="#f8fafc">Other</text><text x="606" y="160" class="m" font-size="12.5" fill="#94a3b8" text-anchor="end">0.7%</text>
 <line x1="640" y1="32" x2="640" y2="218" stroke="#1e293b"/>
 <text x="672" y="44" class="m" font-size="11" fill="#0ea5e9" letter-spacing="1.8">LAST 12 MONTHS</text>
-<text x="672" y="104" class="s" font-size="30" fill="#f8fafc">977</text><text x="672" y="126" class="i" font-size="12.5" fill="#94a3b8">contributions</text>
-<text x="832" y="104" class="s" font-size="30" fill="#f8fafc">967</text><text x="832" y="126" class="i" font-size="12.5" fill="#94a3b8">commits incl. private</text>
+<text x="672" y="104" class="s" font-size="30" fill="#f8fafc">979</text><text x="672" y="126" class="i" font-size="12.5" fill="#94a3b8">contributions</text>
+<text x="832" y="104" class="s" font-size="30" fill="#f8fafc">969</text><text x="832" y="126" class="i" font-size="12.5" fill="#94a3b8">commits incl. private</text>
 <text x="672" y="186" class="s" font-size="30" fill="#f8fafc">6</text><text x="672" y="208" class="i" font-size="12.5" fill="#94a3b8">pull requests</text>
 <text x="832" y="186" class="s" font-size="30" fill="#f8fafc">27</text><text x="832" y="208" class="i" font-size="12.5" fill="#94a3b8">repositories</text>
 </svg>

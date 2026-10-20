@@ -1,0 +1,21 @@
+[
+  {
+    "name": "FleetBuddy",
+    "tools": [
+      "eslint",
+      "express",
+      "githubactions",
+      "jest",
+      "nestjs",
+      "playwright",
+      "react",
+      "rxjs",
+      "supabase",
+      "swagger",
+      "tailwindcss",
+      "vitejs",
+      "vitest"
+    ],
+    "test_files": 125
+  }
+]
