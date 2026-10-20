@@ -12,9 +12,9 @@ TEST_DENSITY = os.environ.get("SKYLINE_TEST_DENSITY")
 LEVEL = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
 THEMES = {
     "light": dict(levels=["#e2e8f0", "#bae6fd", "#38bdf8", "#0ea5e9", "#8b5cf6"], fg="#0f172a", sub="#475569",
-                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", wave="0.55"),
+                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", dim="0.6", page="#ffffff"),
     "dark": dict(levels=["#1e293b", "#0c4a6e", "#0369a1", "#0ea5e9", "#8b5cf6"], fg="#f8fafc", sub="#94a3b8",
-                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.3"),
+                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", dim="0.6", page="#0d1117"),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
 STREAK_COL, TOP_COL = "#22c55e", "#f59e0b"   # longest streak and busiest day, also in the stat block
@@ -134,6 +134,29 @@ def svg(th):
     # bars, back to front so nearer ones cover the ones behind
     streak_days = {c[4] for c in STREAK} if len(STREAK) >= 2 else set()
     end_bars = 0.25 + len(weeks) * 0.035 + 0.7
+    live = end_bars + 0.8                         # the continuous effects start once the bars stand
+    # month spotlight: one month at a time lights up, the rest dims a little
+    months = []
+    for c in sorted(cells, key=lambda c: c[4]):
+        key = c[4][:7]
+        if c[2] > 0 and key not in months:
+            months.append(key)
+    SPOT = 4.0
+    spot_loop = max(1, len(months)) * SPOT
+    def spot_vis(i, lo, hi):
+        """opacity values for window i of the month loop: hi inside the window, lo outside."""
+        k = len(months)
+        a, b, e = i / k, (i + 1) / k, 0.5 / spot_loop
+        if k == 1:
+            return f'values="{hi};{hi}" keyTimes="0;1"'
+        if i == 0:
+            return f'values="{hi};{hi};{lo};{lo};{hi}" keyTimes="0;{b - e:.5f};{b:.5f};{1 - e:.5f};1"'
+        return f'values="{lo};{lo};{hi};{hi};{lo};{lo}" keyTimes="0;{a:.5f};{a + e:.5f};{b - e:.5f};{b:.5f};1"'
+    # wandering light: the sunny side of the bars slowly swaps, as if the light circles round
+    SUN = 18.0
+    def sun_fill(col, f1, f2):
+        return (f'<animate attributeName="fill" values="{shade(col, f1)};{shade(col, f2)};{shade(col, f1)}" '
+                f'dur="{SUN}s" begin="{live:.2f}s" repeatCount="indefinite"/>')
     for x, y, n, lv, date in sorted(cells, key=lambda c: (c[0] + c[1], c[0])):
         h = height(n)
         top = th["levels"][lv]
@@ -153,16 +176,63 @@ def svg(th):
                 if lv == 4 else '<animateTransform attributeName="transform" type="scale" values="1 0;1 1" keyTimes="0;1" ')
         grow += (f'calcMode="spline" keySplines="{"0.2 0.7 0.3 1;0.4 0 0.6 1" if lv == 4 else "0.2 0.7 0.3 1"}" '
                  f'begin="{delay:.3f}s" dur="0.7s" fill="freeze"/>')
+        mi = months.index(date[:7]) if date[:7] in months else None
+        # dimming is a haze in the page colour over the bar, so bars stay solid
+        haze_vis = (spot_vis(mi, th["dim"], 0) if mi is not None else f'values="{th["dim"]};{th["dim"]}" keyTimes="0;1"')
+        haze = (f'<polygon points="{pts(t0, t1, p1, p2, p3, t3)}" fill="{th["page"]}" opacity="0">'
+                f'<animate attributeName="opacity" {haze_vis} begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/></polygon>')
         o.append(f'<g transform="translate({ox:.1f} {oy:.1f})"><g transform="scale(1 0)">{grow}'
                  f'<g transform="translate({-ox:.1f} {-oy:.1f})">'
-                 f'<polygon points="{pts(p3, p2, t2, t3)}" fill="{shade(side, 0.78)}"/>'
-                 f'<polygon points="{pts(p1, p2, t2, t1)}" fill="{shade(side, 0.9)}"/>'
-                 f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{top}"/>'
-                 # light wave: every few seconds a soft highlight glides over all tops, left to right
-                 + (lambda a: f'<polygon points="{pts(t0, t1, t2, t3)}" fill="#ffffff" opacity="0">'
-                    f'<animate attributeName="opacity" values="0;0;{th["wave"]};0;0" keyTimes="0;{a:.3f};{a + 0.04:.3f};{a + 0.1:.3f};1" '
-                    f'begin="{end_bars:.2f}s" dur="6s" repeatCount="indefinite"/></polygon>')(x / len(weeks) * 0.85)
+                 f'<polygon points="{pts(p3, p2, t2, t3)}" fill="{shade(side, 0.78)}">{sun_fill(side, 0.78, 0.97)}</polygon>'
+                 f'<polygon points="{pts(p1, p2, t2, t1)}" fill="{shade(side, 0.9)}">{sun_fill(side, 0.9, 0.7)}</polygon>'
+                 f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{top}"/>{haze}'
                  + '</g></g></g>')
+    # spotlight label: month and its total, top left
+    for i, key in enumerate(months):
+        total = sum(c[2] for c in cells if c[4][:7] == key)
+        name = datetime.date.fromisoformat(key + "-01").strftime("%B %Y")
+        o.append(f'<g opacity="0"><animate attributeName="opacity" {spot_vis(i, 0, 1)} begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/>'
+                 f'<text x="40" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">{name.upper()}</text>'
+                 f'<text x="40" y="74" class="s" font-size="24" fill="{th["fg"]}">{total:,}<tspan class="i" font-size="13" fill="{th["sub"]}"> contributions</tspan></text></g>')
+    # rising particles above the busiest (violet) days, like heat over a busy day
+    import random
+    rnd = random.Random(7)
+    for x, y, n, lv, date in cells:
+        if lv != 4:
+            continue
+        fx, fy = proj(x + 0.5, y + 0.5, height(n))
+        for j in range(3):
+            dx = rnd.uniform(-5, 5)
+            dur = rnd.uniform(2.4, 3.6)
+            o.append(f'<rect x="{fx + dx - 1.5:.1f}" y="{fy - 3:.1f}" width="3" height="3" rx="0.8" fill="{th["levels"][4]}" opacity="0">'
+                     f'<animate attributeName="y" values="{fy - 3:.1f};{fy - 34:.1f}" dur="{dur:.2f}s" begin="{live + rnd.uniform(0, 3):.2f}s" repeatCount="indefinite"/>'
+                     f'<animate attributeName="opacity" values="0;0.8;0" dur="{dur:.2f}s" begin="{live + rnd.uniform(0, 3):.2f}s" repeatCount="indefinite"/></rect>')
+    # streak runner: a green light hops from top to top along the longest streak
+    if len(STREAK) >= 2:
+        tops_xy = [proj(c[0] + 0.5, c[1] + 0.5, height(c[2])) for c in STREAK]
+        xs, ys = [], []
+        for i, (ax, ay) in enumerate(tops_xy):
+            xs.append(ax); ys.append(ay - 4)
+            if i + 1 < len(tops_xy):
+                bx, by = tops_xy[i + 1]
+                xs.append((ax + bx) / 2); ys.append(min(ay, by) - 18)   # hop arc
+        for _ in range(4):                                              # short rest at the end
+            xs.append(xs[-1]); ys.append(ys[-1])
+        hop = 0.32 * len(xs)
+        o.append(f'<circle r="4.5" fill="{STREAK_COL}" opacity="0" filter="url(#glow)">'
+                 f'<animate attributeName="opacity" values="0;1" begin="{live:.2f}s" dur="0.3s" fill="freeze"/>'
+                 f'<animate attributeName="cx" values="{";".join(f"{v:.1f}" for v in xs)}" dur="{hop:.2f}s" begin="{live:.2f}s" repeatCount="indefinite"/>'
+                 f'<animate attributeName="cy" values="{";".join(f"{v:.1f}" for v in ys)}" dur="{hop:.2f}s" begin="{live:.2f}s" repeatCount="indefinite"/></circle>')
+    # today beacon on the last day of the calendar
+    today = max(cells, key=lambda c: c[4])
+    tx, ty = proj(today[0] + 0.5, today[1] + 0.5, height(today[2]))
+    o.append(f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{live:.2f}s" dur="0.4s" fill="freeze"/>'
+             f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="4" fill="{SKY}"><animate attributeName="r" values="4;14;4" dur="1.8s" repeatCount="indefinite"/>'
+             f'<animate attributeName="opacity" values="0.6;0;0.6" dur="1.8s" repeatCount="indefinite"/></circle>'
+             f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="3.5" fill="{SKY}"/>'
+             f'<line x1="{tx:.1f}" y1="{ty - 4:.1f}" x2="{tx:.1f}" y2="{ty - 22:.1f}" stroke="{SKY}" stroke-width="1.2"/>'
+             f'<rect x="{tx - 24:.1f}" y="{ty - 40:.1f}" width="48" height="18" rx="9" fill="{th["panel"]}" stroke="{SKY}"/>'
+             f'<text x="{tx:.1f}" y="{ty - 27.5:.1f}" text-anchor="middle" class="m" font-size="11" fill="{SKY}">today</text></g>')
     # month labels along the front edge
     last = -10
     for x, w in enumerate(weeks):
