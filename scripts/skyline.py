@@ -217,9 +217,24 @@ def svg(th):
     for i, key in enumerate(months):
         total = sum(c[2] for c in cells if c[4][:7] == key)
         name = datetime.date.fromisoformat(key + "-01").strftime("%B %Y")
+        # the total counts up from 0 every time its month comes round
+        frames, t_first, t_step = 12, 0.15, 0.07
+        win_start, win_end = i * SPOT, (i + 1) * SPOT
+        counter = []
+        for j in range(frames + 1):
+            v = round(total * (1 - (1 - j / frames) ** 3))
+            t_on = win_start + t_first + j * t_step
+            t_off = win_start + t_first + (j + 1) * t_step if j < frames else win_end
+            s_on, s_off = t_on / spot_loop, t_off / spot_loop
+            vis = (f'values="0;1;0" keyTimes="0;{s_on:.5f};{s_off:.5f}"' if s_off < 0.99999
+                   else f'values="0;1;1" keyTimes="0;{s_on:.5f};1"')
+            counter.append(f'<text x="40" y="74" class="s" font-size="24" fill="{th["fg"]}" opacity="0">{v:,}'
+                           f'<animate attributeName="opacity" calcMode="discrete" {vis} begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/></text>')
+        word_x = 40 + len(f"{total:,}") * 14.6 + 6
         o.append(f'<g opacity="0"><animate attributeName="opacity" {spot_vis(i, 0, 1)} begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/>'
                  f'<text x="40" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">{name.upper()}</text>'
-                 f'<text x="40" y="74" class="s" font-size="24" fill="{th["fg"]}">{total:,}<tspan class="i" font-size="13" fill="{th["sub"]}"> contributions</tspan></text></g>')
+                 + "".join(counter)
+                 + f'<text x="{word_x:.1f}" y="74" class="i" font-size="13" fill="{th["sub"]}">contributions</text></g>')
     # flag: jumps between the days, every day with contributions gets it once per round.
     # The pole grows where bars in front would hide the label, so every label stays readable.
     if tops:
