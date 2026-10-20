@@ -361,7 +361,7 @@
 <polygon points="766.0,503.8 780.0,510.0 770.0,515.0 756.0,508.8" fill="#1e293b" stroke="#0b0b12" stroke-width="0.6"/>
 <g transform="translate(794.0 516.2)"><g transform="scale(1 0)"><animateTransform attributeName="transform" type="scale" values="1 0;1 1" keyTimes="0;1" calcMode="spline" keySplines="0.2 0.7 0.3 1" begin="2.000s" dur="0.7s" fill="freeze"/><g transform="translate(-794.0 -516.2)"><polygon points="780.0,510.0 794.0,516.2 794.0,474.0 780.0,467.8" fill="#093a56"/><polygon points="804.0,511.2 794.0,516.2 794.0,474.0 804.0,469.0" fill="#0b4363"/><polygon points="790.0,462.8 804.0,469.0 794.0,474.0 780.0,467.8" fill="#0c4a6e"/></g></g></g>
 <g transform="translate(818.0 517.4)"><g transform="scale(1 0)"><animateTransform attributeName="transform" type="scale" values="1 0;1 1" keyTimes="0;1" calcMode="spline" keySplines="0.2 0.7 0.3 1" begin="2.035s" dur="0.7s" fill="freeze"/><g transform="translate(-818.0 -517.4)"><polygon points="804.0,511.2 818.0,517.4 818.0,471.5 804.0,465.3" fill="#093a56"/><polygon points="828.0,512.4 818.0,517.4 818.0,471.5 828.0,466.5" fill="#0b4363"/><polygon points="814.0,460.3 828.0,466.5 818.0,471.5 804.0,465.3" fill="#0c4a6e"/></g></g></g>
-<g transform="translate(842.0 518.6)"><g transform="scale(1 0)"><animateTransform attributeName="transform" type="scale" values="1 0;1 1" keyTimes="0;1" calcMode="spline" keySplines="0.2 0.7 0.3 1" begin="2.070s" dur="0.7s" fill="freeze"/><g transform="translate(-842.0 -518.6)"><polygon points="828.0,512.4 842.0,518.6 842.0,444.1 828.0,437.9" fill="#0b81b6"/><polygon points="852.0,513.6 842.0,518.6 842.0,444.1 852.0,439.1" fill="#0d94d2"/><polygon points="838.0,432.9 852.0,439.1 842.0,444.1 828.0,437.9" fill="#0ea5e9"/></g></g></g>
+<g transform="translate(842.0 518.6)"><g transform="scale(1 0)"><animateTransform attributeName="transform" type="scale" values="1 0;1 1" keyTimes="0;1" calcMode="spline" keySplines="0.2 0.7 0.3 1" begin="2.070s" dur="0.7s" fill="freeze"/><g transform="translate(-842.0 -518.6)"><polygon points="828.0,512.4 842.0,518.6 842.0,442.0 828.0,435.8" fill="#0b81b6"/><polygon points="852.0,513.6 842.0,518.6 842.0,442.0 852.0,437.0" fill="#0d94d2"/><polygon points="838.0,430.8 852.0,437.0 842.0,442.0 828.0,435.8" fill="#0ea5e9"/></g></g></g>
 <polygon points="756.0,508.8 770.0,515.0 760.0,520.0 746.0,513.8" fill="#1e293b" stroke="#0b0b12" stroke-width="0.6"/>
 <g transform="translate(784.0 521.2)"><g transform="scale(1 0)"><animateTransform attributeName="transform" type="scale" values="1 0;1 1" keyTimes="0;1" calcMode="spline" keySplines="0.2 0.7 0.3 1" begin="2.000s" dur="0.7s" fill="freeze"/><g transform="translate(-784.0 -521.2)"><polygon points="770.0,515.0 784.0,521.2 784.0,442.6 770.0,436.4" fill="#0b81b6"/><polygon points="794.0,516.2 784.0,521.2 784.0,442.6 794.0,437.6" fill="#0d94d2"/><polygon points="780.0,431.4 794.0,437.6 784.0,442.6 770.0,436.4" fill="#0ea5e9"/></g></g></g>
 <g transform="translate(808.0 522.4)"><g transform="scale(1 0)"><animateTransform attributeName="transform" type="scale" values="1 0;1 1" keyTimes="0;1" calcMode="spline" keySplines="0.2 0.7 0.3 1" begin="2.035s" dur="0.7s" fill="freeze"/><g transform="translate(-808.0 -522.4)"><polygon points="794.0,516.2 808.0,522.4 808.0,484.2 794.0,478.0" fill="#093a56"/><polygon points="818.0,517.4 808.0,522.4 808.0,484.2 818.0,479.2" fill="#0b4363"/><polygon points="804.0,473.0 818.0,479.2 808.0,484.2 794.0,478.0" fill="#0c4a6e"/></g></g></g>
@@ -385,66 +385,66 @@
 <text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="1">0<set attributeName="opacity" to="0" begin="0.48s"/></text>
 <text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">191<set attributeName="opacity" to="1" begin="0.48s"/><set attributeName="opacity" to="0" begin="0.56s"/></text>
 <text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">354<set attributeName="opacity" to="1" begin="0.56s"/><set attributeName="opacity" to="0" begin="0.64s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">492<set attributeName="opacity" to="1" begin="0.64s"/><set attributeName="opacity" to="0" begin="0.72s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">493<set attributeName="opacity" to="1" begin="0.64s"/><set attributeName="opacity" to="0" begin="0.72s"/></text>
 <text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">608<set attributeName="opacity" to="1" begin="0.72s"/><set attributeName="opacity" to="0" begin="0.80s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">702<set attributeName="opacity" to="1" begin="0.80s"/><set attributeName="opacity" to="0" begin="0.88s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">703<set attributeName="opacity" to="1" begin="0.80s"/><set attributeName="opacity" to="0" begin="0.88s"/></text>
 <text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">778<set attributeName="opacity" to="1" begin="0.88s"/><set attributeName="opacity" to="0" begin="0.96s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">836<set attributeName="opacity" to="1" begin="0.96s"/><set attributeName="opacity" to="0" begin="1.04s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">881<set attributeName="opacity" to="1" begin="1.04s"/><set attributeName="opacity" to="0" begin="1.12s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">912<set attributeName="opacity" to="1" begin="1.12s"/><set attributeName="opacity" to="0" begin="1.20s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">934<set attributeName="opacity" to="1" begin="1.20s"/><set attributeName="opacity" to="0" begin="1.28s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">947<set attributeName="opacity" to="1" begin="1.28s"/><set attributeName="opacity" to="0" begin="1.36s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">953<set attributeName="opacity" to="1" begin="1.36s"/><set attributeName="opacity" to="0" begin="1.44s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">956<set attributeName="opacity" to="1" begin="1.44s"/><set attributeName="opacity" to="0" begin="1.52s"/></text>
-<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">956<set attributeName="opacity" to="1" begin="1.52s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">837<set attributeName="opacity" to="1" begin="0.96s"/><set attributeName="opacity" to="0" begin="1.04s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">882<set attributeName="opacity" to="1" begin="1.04s"/><set attributeName="opacity" to="0" begin="1.12s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">913<set attributeName="opacity" to="1" begin="1.12s"/><set attributeName="opacity" to="0" begin="1.20s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">935<set attributeName="opacity" to="1" begin="1.20s"/><set attributeName="opacity" to="0" begin="1.28s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">948<set attributeName="opacity" to="1" begin="1.28s"/><set attributeName="opacity" to="0" begin="1.36s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">954<set attributeName="opacity" to="1" begin="1.36s"/><set attributeName="opacity" to="0" begin="1.44s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">957<set attributeName="opacity" to="1" begin="1.44s"/><set attributeName="opacity" to="0" begin="1.52s"/></text>
+<text x="640" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">957<set attributeName="opacity" to="1" begin="1.52s"/></text>
 <text x="640" y="107" class="i" font-size="12.5" fill="#94a3b8">contributions</text>
 <text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="1">0<set attributeName="opacity" to="0" begin="0.48s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">189<set attributeName="opacity" to="1" begin="0.48s"/><set attributeName="opacity" to="0" begin="0.56s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">350<set attributeName="opacity" to="1" begin="0.56s"/><set attributeName="opacity" to="0" begin="0.64s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">487<set attributeName="opacity" to="1" begin="0.64s"/><set attributeName="opacity" to="0" begin="0.72s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">601<set attributeName="opacity" to="1" begin="0.72s"/><set attributeName="opacity" to="0" begin="0.80s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">695<set attributeName="opacity" to="1" begin="0.80s"/><set attributeName="opacity" to="0" begin="0.88s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">769<set attributeName="opacity" to="1" begin="0.88s"/><set attributeName="opacity" to="0" begin="0.96s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">828<set attributeName="opacity" to="1" begin="0.96s"/><set attributeName="opacity" to="0" begin="1.04s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">872<set attributeName="opacity" to="1" begin="1.04s"/><set attributeName="opacity" to="0" begin="1.12s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">903<set attributeName="opacity" to="1" begin="1.12s"/><set attributeName="opacity" to="0" begin="1.20s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">924<set attributeName="opacity" to="1" begin="1.20s"/><set attributeName="opacity" to="0" begin="1.28s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">937<set attributeName="opacity" to="1" begin="1.28s"/><set attributeName="opacity" to="0" begin="1.36s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">943<set attributeName="opacity" to="1" begin="1.36s"/><set attributeName="opacity" to="0" begin="1.44s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">946<set attributeName="opacity" to="1" begin="1.44s"/><set attributeName="opacity" to="0" begin="1.52s"/></text>
-<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">946<set attributeName="opacity" to="1" begin="1.52s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">158<set attributeName="opacity" to="1" begin="0.48s"/><set attributeName="opacity" to="0" begin="0.56s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">294<set attributeName="opacity" to="1" begin="0.56s"/><set attributeName="opacity" to="0" begin="0.64s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">408<set attributeName="opacity" to="1" begin="0.64s"/><set attributeName="opacity" to="0" begin="0.72s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">504<set attributeName="opacity" to="1" begin="0.72s"/><set attributeName="opacity" to="0" begin="0.80s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">582<set attributeName="opacity" to="1" begin="0.80s"/><set attributeName="opacity" to="0" begin="0.88s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">645<set attributeName="opacity" to="1" begin="0.88s"/><set attributeName="opacity" to="0" begin="0.96s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">694<set attributeName="opacity" to="1" begin="0.96s"/><set attributeName="opacity" to="0" begin="1.04s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">731<set attributeName="opacity" to="1" begin="1.04s"/><set attributeName="opacity" to="0" begin="1.12s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">757<set attributeName="opacity" to="1" begin="1.12s"/><set attributeName="opacity" to="0" begin="1.20s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">775<set attributeName="opacity" to="1" begin="1.20s"/><set attributeName="opacity" to="0" begin="1.28s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">785<set attributeName="opacity" to="1" begin="1.28s"/><set attributeName="opacity" to="0" begin="1.36s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">791<set attributeName="opacity" to="1" begin="1.36s"/><set attributeName="opacity" to="0" begin="1.44s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">793<set attributeName="opacity" to="1" begin="1.44s"/><set attributeName="opacity" to="0" begin="1.52s"/></text>
+<text x="805" y="86" class="s" font-size="30" fill="#f8fafc" opacity="0">793<set attributeName="opacity" to="1" begin="1.52s"/></text>
 <text x="805" y="107" class="i" font-size="12.5" fill="#94a3b8">commits incl. private</text>
 <text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="1">0<set attributeName="opacity" to="0" begin="0.48s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">1<set attributeName="opacity" to="1" begin="0.48s"/><set attributeName="opacity" to="0" begin="0.56s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="0.56s"/><set attributeName="opacity" to="0" begin="0.64s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">3<set attributeName="opacity" to="1" begin="0.64s"/><set attributeName="opacity" to="0" begin="0.72s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="0.72s"/><set attributeName="opacity" to="0" begin="0.80s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="0.80s"/><set attributeName="opacity" to="0" begin="0.88s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">5<set attributeName="opacity" to="1" begin="0.88s"/><set attributeName="opacity" to="0" begin="0.96s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">5<set attributeName="opacity" to="1" begin="0.96s"/><set attributeName="opacity" to="0" begin="1.04s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">6<set attributeName="opacity" to="1" begin="1.04s"/><set attributeName="opacity" to="0" begin="1.12s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">6<set attributeName="opacity" to="1" begin="1.12s"/><set attributeName="opacity" to="0" begin="1.20s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">6<set attributeName="opacity" to="1" begin="1.20s"/><set attributeName="opacity" to="0" begin="1.28s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">6<set attributeName="opacity" to="1" begin="1.28s"/><set attributeName="opacity" to="0" begin="1.36s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">6<set attributeName="opacity" to="1" begin="1.36s"/><set attributeName="opacity" to="0" begin="1.44s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">6<set attributeName="opacity" to="1" begin="1.44s"/><set attributeName="opacity" to="0" begin="1.52s"/></text>
-<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">6<set attributeName="opacity" to="1" begin="1.52s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">6<set attributeName="opacity" to="1" begin="0.48s"/><set attributeName="opacity" to="0" begin="0.56s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">12<set attributeName="opacity" to="1" begin="0.56s"/><set attributeName="opacity" to="0" begin="0.64s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">16<set attributeName="opacity" to="1" begin="0.64s"/><set attributeName="opacity" to="0" begin="0.72s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">20<set attributeName="opacity" to="1" begin="0.72s"/><set attributeName="opacity" to="0" begin="0.80s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">23<set attributeName="opacity" to="1" begin="0.80s"/><set attributeName="opacity" to="0" begin="0.88s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">26<set attributeName="opacity" to="1" begin="0.88s"/><set attributeName="opacity" to="0" begin="0.96s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">28<set attributeName="opacity" to="1" begin="0.96s"/><set attributeName="opacity" to="0" begin="1.04s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">29<set attributeName="opacity" to="1" begin="1.04s"/><set attributeName="opacity" to="0" begin="1.12s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">31<set attributeName="opacity" to="1" begin="1.12s"/><set attributeName="opacity" to="0" begin="1.20s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">31<set attributeName="opacity" to="1" begin="1.20s"/><set attributeName="opacity" to="0" begin="1.28s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">32<set attributeName="opacity" to="1" begin="1.28s"/><set attributeName="opacity" to="0" begin="1.36s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">32<set attributeName="opacity" to="1" begin="1.36s"/><set attributeName="opacity" to="0" begin="1.44s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">32<set attributeName="opacity" to="1" begin="1.44s"/><set attributeName="opacity" to="0" begin="1.52s"/></text>
+<text x="640" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">32<set attributeName="opacity" to="1" begin="1.52s"/></text>
 <text x="640" y="177" class="i" font-size="12.5" fill="#94a3b8">pull requests</text>
 <text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="1">0<set attributeName="opacity" to="0" begin="0.48s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">0<set attributeName="opacity" to="1" begin="0.48s"/><set attributeName="opacity" to="0" begin="0.56s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">1<set attributeName="opacity" to="1" begin="0.48s"/><set attributeName="opacity" to="0" begin="0.56s"/></text>
 <text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">1<set attributeName="opacity" to="1" begin="0.56s"/><set attributeName="opacity" to="0" begin="0.64s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">1<set attributeName="opacity" to="1" begin="0.64s"/><set attributeName="opacity" to="0" begin="0.72s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">1<set attributeName="opacity" to="1" begin="0.72s"/><set attributeName="opacity" to="0" begin="0.80s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">1<set attributeName="opacity" to="1" begin="0.80s"/><set attributeName="opacity" to="0" begin="0.88s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="0.88s"/><set attributeName="opacity" to="0" begin="0.96s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="0.96s"/><set attributeName="opacity" to="0" begin="1.04s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="1.04s"/><set attributeName="opacity" to="0" begin="1.12s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="1.12s"/><set attributeName="opacity" to="0" begin="1.20s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="1.20s"/><set attributeName="opacity" to="0" begin="1.28s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="1.28s"/><set attributeName="opacity" to="0" begin="1.36s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="1.36s"/><set attributeName="opacity" to="0" begin="1.44s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="1.44s"/><set attributeName="opacity" to="0" begin="1.52s"/></text>
-<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="1.52s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="0.64s"/><set attributeName="opacity" to="0" begin="0.72s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">3<set attributeName="opacity" to="1" begin="0.72s"/><set attributeName="opacity" to="0" begin="0.80s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">3<set attributeName="opacity" to="1" begin="0.80s"/><set attributeName="opacity" to="0" begin="0.88s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">3<set attributeName="opacity" to="1" begin="0.88s"/><set attributeName="opacity" to="0" begin="0.96s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="0.96s"/><set attributeName="opacity" to="0" begin="1.04s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="1.04s"/><set attributeName="opacity" to="0" begin="1.12s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="1.12s"/><set attributeName="opacity" to="0" begin="1.20s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="1.20s"/><set attributeName="opacity" to="0" begin="1.28s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="1.28s"/><set attributeName="opacity" to="0" begin="1.36s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="1.36s"/><set attributeName="opacity" to="0" begin="1.44s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="1.44s"/><set attributeName="opacity" to="0" begin="1.52s"/></text>
+<text x="805" y="156" class="s" font-size="30" fill="#f8fafc" opacity="0">4<set attributeName="opacity" to="1" begin="1.52s"/></text>
 <text x="805" y="177" class="i" font-size="12.5" fill="#94a3b8">reviews</text>
 <text x="640" y="226" class="s" font-size="30" fill="#f8fafc" opacity="1">0<set attributeName="opacity" to="0" begin="0.48s"/></text>
 <text x="640" y="226" class="s" font-size="30" fill="#f8fafc" opacity="0">2<set attributeName="opacity" to="1" begin="0.48s"/><set attributeName="opacity" to="0" begin="0.56s"/></text>
