@@ -17,6 +17,7 @@ THEMES = {
                  mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.3"),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
+STREAK_COL, TOP_COL = "#22c55e", "#f59e0b"   # longest streak and busiest day, also in the stat block
 
 # ---------------- data ----------------
 QUERY = """{ viewer { contributionsCollection { totalCommitContributions restrictedContributionsCount
@@ -132,11 +133,15 @@ def svg(th):
          f'<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>']
     # bars, back to front so nearer ones cover the ones behind
     streak_days = {c[4] for c in STREAK} if len(STREAK) >= 2 else set()
-    streak_no = {c[4]: i + 1 for i, c in enumerate(STREAK)}
     end_bars = 0.25 + len(weeks) * 0.035 + 0.7
     for x, y, n, lv, date in sorted(cells, key=lambda c: (c[0] + c[1], c[0])):
         h = height(n)
         top = th["levels"][lv]
+        side = top
+        if TOP and date == TOP[4]:
+            top = TOP_COL
+        elif date in streak_days:
+            top = STREAK_COL
         p0, p1, p2, p3 = proj(x, y), proj(x + 1, y), proj(x + 1, y + 1), proj(x, y + 1)
         if h == 0:
             o.append(f'<polygon points="{pts(p0, p1, p2, p3)}" fill="{top}" stroke="{th["panel"]}" stroke-width="0.6"/>')
@@ -150,24 +155,13 @@ def svg(th):
                  f'begin="{delay:.3f}s" dur="0.7s" fill="freeze"/>')
         o.append(f'<g transform="translate({ox:.1f} {oy:.1f})"><g transform="scale(1 0)">{grow}'
                  f'<g transform="translate({-ox:.1f} {-oy:.1f})">'
-                 f'<polygon points="{pts(p3, p2, t2, t3)}" fill="{shade(top, 0.78)}"/>'
-                 f'<polygon points="{pts(p1, p2, t2, t1)}" fill="{shade(top, 0.9)}"/>'
+                 f'<polygon points="{pts(p3, p2, t2, t3)}" fill="{shade(side, 0.78)}"/>'
+                 f'<polygon points="{pts(p1, p2, t2, t1)}" fill="{shade(side, 0.9)}"/>'
                  f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{top}"/>'
                  # light wave: every few seconds a soft highlight glides over all tops, left to right
                  + (lambda a: f'<polygon points="{pts(t0, t1, t2, t3)}" fill="#ffffff" opacity="0">'
                     f'<animate attributeName="opacity" values="0;0;{th["wave"]};0;0" keyTimes="0;{a:.3f};{a + 0.04:.3f};{a + 0.1:.3f};1" '
                     f'begin="{end_bars:.2f}s" dur="6s" repeatCount="indefinite"/></polygon>')(x / len(weeks) * 0.85)
-                 + (f'<polygon points="{pts(t0, t1, t2, t3)}" fill="none" stroke="url(#ac)" stroke-width="2.6" filter="url(#glow)" opacity="0">'
-                    f'<animate attributeName="opacity" values="0;1" begin="{end_bars + (x - STREAK[0][0]) * 0.06:.2f}s" dur="0.4s" fill="freeze"/>'
-                    f'<animate attributeName="opacity" values="1;0.35;1" begin="{end_bars + 1.6:.2f}s" dur="2.2s" repeatCount="indefinite"/>'
-                    f'<animate attributeName="stroke-width" values="2.6;4;2.6" begin="{end_bars + 1.6:.2f}s" dur="2.2s" repeatCount="indefinite"/></polygon>'
-                    if date in streak_days else '')
-                 # day number of the streak on top of its bar
-                 + ((lambda cx, cy, delay: f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{delay:.2f}s" dur="0.4s" fill="freeze"/>'
-                     f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="7.5" fill="{th["panel"]}" stroke="url(#ac)" stroke-width="1.4"/>'
-                     f'<text x="{cx:.1f}" y="{cy + 3.6:.1f}" text-anchor="middle" class="s" font-size="10" fill="{SKY}">{streak_no[date]}</text></g>')
-                    (*proj(x + 0.5, y + 0.5, h), end_bars + 0.3 + (streak_no[date] - 1) * 0.12)
-                    if date in streak_days else '')
                  + '</g></g></g>')
     # month labels along the front edge
     last = -10
@@ -178,17 +172,6 @@ def svg(th):
             lx, ly = proj(x + 0.2, 9.0)
             o.append(f'<text x="{lx:.1f}" y="{ly:.1f}" class="m" font-size="11" fill="{th["mute"]}">{d0.strftime("%b")}</text>')
             last = x
-    # streak label, above the highest top of the streak, so the glowing tops explain themselves
-    if streak_days:
-        tops_xy = [proj(c[0] + 0.5, c[1] + 0.5, height(c[2])) for c in STREAK]
-        hx, hy = min(tops_xy, key=lambda p: p[1])
-        text = f"{len(STREAK)}-day streak"
-        w = len(text) * 6.9 + 16
-        lx, ly = hx - w / 2, hy - 34
-        o.append(f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{end_bars + 1.2:.2f}s" dur="0.5s" fill="freeze"/>'
-                 f'<rect x="{lx:.1f}" y="{ly:.1f}" width="{w:.1f}" height="20" rx="10" fill="{th["panel"]}" stroke="url(#ac)" stroke-width="1.2"/>'
-                 f'<text x="{hx:.1f}" y="{ly + 14:.1f}" text-anchor="middle" class="m" font-size="11" fill="{SKY}">{text}</text>'
-                 f'<line x1="{hx:.1f}" y1="{ly + 20:.1f}" x2="{hx:.1f}" y2="{hy - 3:.1f}" stroke="url(#ac)" stroke-width="1.2" stroke-dasharray="2 2"/></g>')
     # flag: jumps between the days, every day with contributions gets it once per round.
     # The pole grows where bars in front would hide the label, so every label stays readable.
     # random order, every day still once per round; reshuffled with each daily build
@@ -196,7 +179,7 @@ def svg(th):
     import random
     random.Random(datetime.date.today().toordinal()).shuffle(tops)
     if tops:
-        k, slot = len(tops), 1.0
+        k, slot, fade = len(tops), 1.5, 0.4   # seconds per day, seconds to fade in and out
         loop = k * slot
         start = end_bars + 0.4
         stat_box = (620, 0, 1000, 265)
@@ -222,7 +205,7 @@ def svg(th):
                     continue
                 break
             by = max(4, fy - pole - 20)
-            a0, b0, e = i / k, (i + 1) / k, min(0.15 / loop, 0.3 / k)
+            a0, b0, e = i / k, (i + 1) / k, fade / loop
             if k == 1:
                 vis = 'values="1;1" keyTimes="0;1"'
             elif i == 0:
@@ -250,7 +233,8 @@ def svg(th):
             anims = (f'<set attributeName="opacity" to="1" begin="{start:.2f}s"/>' if k else '')
             if not last_frame:
                 anims += f'<set attributeName="opacity" to="0" begin="{start + 0.08:.2f}s"/>'
-            o.append(f'<text x="{cx}" y="{cy}" class="s" font-size="30" fill="{th["fg"]}" opacity="{1 if k == 0 else 0}">{v:,}{anims}</text>')
+            col = STREAK_COL if label.startswith("longest streak") else TOP_COL if label == "most in one day" else th["fg"]
+            o.append(f'<text x="{cx}" y="{cy}" class="s" font-size="30" fill="{col}" opacity="{1 if k == 0 else 0}">{v:,}{anims}</text>')
         o.append(f'<text x="{cx}" y="{cy + 21}" class="i" font-size="12.5" fill="{th["sub"]}">{label}</text>')
     # legend, bottom left
     lx, ly = 40, 500
@@ -259,9 +243,10 @@ def svg(th):
     for k in range(5):
         o.append(f'<rect x="{lx + 38 + k * 20}" y="{ly + 14}" width="15" height="15" rx="4" fill="{th["levels"][k]}"/>')
     o.append(f'<text x="{lx + 38 + 5 * 20 + 4}" y="{ly + 26}" class="m" font-size="11" fill="{th["mute"]}">More</text>')
-    if len(STREAK) >= 2:
-        o.append(f'<rect x="{lx}" y="{ly + 38}" width="15" height="15" rx="4" fill="{th["levels"][2]}" stroke="url(#ac)" stroke-width="1.8" filter="url(#glow)"/>'
-                 f'<text x="{lx + 24}" y="{ly + 50}" class="m" font-size="11" fill="{th["mute"]}">Glow marks the longest streak</text>')
+    o.append(f'<rect x="{lx}" y="{ly + 38}" width="15" height="15" rx="4" fill="{STREAK_COL}"/>'
+             f'<text x="{lx + 22}" y="{ly + 50}" class="m" font-size="11" fill="{th["mute"]}">Longest streak</text>'
+             f'<rect x="{lx + 140}" y="{ly + 38}" width="15" height="15" rx="4" fill="{TOP_COL}"/>'
+             f'<text x="{lx + 162}" y="{ly + 50}" class="m" font-size="11" fill="{th["mute"]}">Most in one day</text>')
     o.append('</svg>')
     return "\n".join(o)
 
