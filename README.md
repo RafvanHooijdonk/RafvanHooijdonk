@@ -60,3 +60,13 @@
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/RafvanHooijdonk/RafvanHooijdonk/output/github-snake.svg" />
   <img alt="Contribution snake" src="https://raw.githubusercontent.com/RafvanHooijdonk/RafvanHooijdonk/output/github-snake.svg" />
 </picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/divider-dark.svg" />
+  <img src="./assets/divider-light.svg" width="100%" alt="" />
+</picture>
+
+### `04 // Contact`
+
+<p>
+<a href="https://rafvanhooijdonk.nl"><picture><source media="(prefers-color-scheme: dark)" srcset="./assets/contact-website-dark.svg" /><img src="./assets/contact-website-light.svg" width="32.4%" alt="Website rafvanhooijdonk.nl" /></picture></a> <a href="https://www.linkedin.com/in/rafvanhooijdonk/"><picture><source media="(prefers-color-scheme: dark)" srcset="./assets/contact-linkedin-dark.svg" /><img src="./assets/contact-linkedin-light.svg" width="32.4%" alt="LinkedIn" /></picture></a> <a href="mailto:contact@rafvanhooijdonk.nl"><picture><source media="(prefers-color-scheme: dark)" srcset="./assets/contact-mail-dark.svg" /><img src="./assets/contact-mail-light.svg" width="32.4%" alt="Email contact@rafvanhooijdonk.nl" /></picture></a></p>
