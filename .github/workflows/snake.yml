@@ -25,10 +25,10 @@ jobs:
           # GitHub username to generate the animation for
           github_user_name: ${{ github.repository_owner }}
           # Define the output files and their configurations
-          # Same five levels as the 3D graph: slate, light sky, sky, deep sky, violet
+          # Same five levels as the 3D graph: slate, light sky, sky, deep sky, violet. Snake in the green of the LIVE labels
           outputs: |
-            dist/github-snake.svg?color_snake=#8b5cf6&color_dots=#e2e8f0,#bae6fd,#38bdf8,#0ea5e9,#8b5cf6
-            dist/github-snake-dark.svg?palette=github-dark&color_snake=#a78bfa&color_dots=#1e293b,#0c4a6e,#0369a1,#0ea5e9,#8b5cf6
+            dist/github-snake.svg?color_snake=#22c55e&color_dots=#e2e8f0,#bae6fd,#38bdf8,#0ea5e9,#8b5cf6
+            dist/github-snake-dark.svg?palette=github-dark&color_snake=#22c55e&color_dots=#1e293b,#0c4a6e,#0369a1,#0ea5e9,#8b5cf6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Step 3: Deploy the generated files to the 'output' branch
