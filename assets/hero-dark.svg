@@ -6,7 +6,7 @@
 <rect width="1000" height="330" rx="18" fill="url(#g1)"/><rect width="1000" height="330" rx="18" fill="url(#g2)"/>
 <rect x="0.5" y="0.5" width="999" height="329" rx="18" fill="none" stroke="#1e293b"/>
 <text x="52" y="44" class="d" font-size="15" fill="#f8fafc" letter-spacing="1">RVH</text>
-<text x="948" y="44" class="m" font-size="12" fill="#64748b" text-anchor="end" letter-spacing="1">rafvanhooijdonk.nl</text>
+<text x="846" y="44" class="m" font-size="12" fill="#64748b" text-anchor="middle" letter-spacing="1">rafvanhooijdonk.nl</text>
 <text x="52" y="104" class="m" font-size="12.5" fill="#0ea5e9" letter-spacing="2.2">FULL-STACK SOFTWARE &amp; AI ENGINEER</text>
 <text x="50" y="164" class="d" font-size="50" fill="#f8fafc" letter-spacing="1">RAF VAN</text>
 <text x="50" y="222" class="d" font-size="50" fill="url(#ac)" letter-spacing="1">HOOIJDONK</text>
