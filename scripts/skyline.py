@@ -125,7 +125,7 @@ def in_view(c):
     return True
 
 def svg(th):
-    W, H = 1000, 560
+    W, H = 1000, 575
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
          f'<defs><linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
          f'<filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" result="b"/>'
@@ -166,6 +166,17 @@ def svg(th):
             lx, ly = proj(x + 0.2, 9.0)
             o.append(f'<text x="{lx:.1f}" y="{ly:.1f}" class="m" font-size="11" fill="{th["mute"]}">{d0.strftime("%b")}</text>')
             last = x
+    # streak label, above the highest top of the streak, so the glowing tops explain themselves
+    if streak_days:
+        tops_xy = [proj(c[0] + 0.5, c[1] + 0.5, height(c[2])) for c in STREAK]
+        hx, hy = min(tops_xy, key=lambda p: p[1])
+        text = f"{len(STREAK)}-day streak"
+        w = len(text) * 6.9 + 16
+        lx, ly = hx - w / 2, hy - 34
+        o.append(f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{end_bars + 1.2:.2f}s" dur="0.5s" fill="freeze"/>'
+                 f'<rect x="{lx:.1f}" y="{ly:.1f}" width="{w:.1f}" height="20" rx="10" fill="{th["panel"]}" stroke="url(#ac)" stroke-width="1.2"/>'
+                 f'<text x="{hx:.1f}" y="{ly + 14:.1f}" text-anchor="middle" class="m" font-size="11" fill="{SKY}">{text}</text>'
+                 f'<line x1="{hx:.1f}" y1="{ly + 20:.1f}" x2="{hx:.1f}" y2="{hy - 3:.1f}" stroke="url(#ac)" stroke-width="1.2" stroke-dasharray="2 2"/></g>')
     # flag: walks through the year, every day with contributions gets it once per round.
     # The pole grows where bars in front would hide the label, so every label stays readable.
     tops = [c for c in sorted(cells, key=lambda c: c[4]) if c[2] > 0]
@@ -233,6 +244,9 @@ def svg(th):
     for k in range(5):
         o.append(f'<rect x="{lx + 38 + k * 20}" y="{ly + 14}" width="15" height="15" rx="4" fill="{th["levels"][k]}"/>')
     o.append(f'<text x="{lx + 38 + 5 * 20 + 4}" y="{ly + 26}" class="m" font-size="11" fill="{th["mute"]}">More</text>')
+    if len(STREAK) >= 2:
+        o.append(f'<rect x="{lx}" y="{ly + 38}" width="15" height="15" rx="4" fill="{th["levels"][2]}" stroke="url(#ac)" stroke-width="1.8" filter="url(#glow)"/>'
+                 f'<text x="{lx + 24}" y="{ly + 50}" class="m" font-size="11" fill="{th["mute"]}">Glow marks the longest streak</text>')
     o.append('</svg>')
     return "\n".join(o)
 
