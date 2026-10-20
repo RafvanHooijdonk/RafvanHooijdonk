@@ -132,6 +132,7 @@ def svg(th):
          f'<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>']
     # bars, back to front so nearer ones cover the ones behind
     streak_days = {c[4] for c in STREAK} if len(STREAK) >= 2 else set()
+    streak_no = {c[4]: i + 1 for i, c in enumerate(STREAK)}
     end_bars = 0.25 + len(weeks) * 0.035 + 0.7
     for x, y, n, lv, date in sorted(cells, key=lambda c: (c[0] + c[1], c[0])):
         h = height(n)
@@ -160,6 +161,12 @@ def svg(th):
                     f'<animate attributeName="opacity" values="0;1" begin="{end_bars + (x - STREAK[0][0]) * 0.06:.2f}s" dur="0.4s" fill="freeze"/>'
                     f'<animate attributeName="opacity" values="1;0.35;1" begin="{end_bars + 1.6:.2f}s" dur="2.2s" repeatCount="indefinite"/>'
                     f'<animate attributeName="stroke-width" values="2.6;4;2.6" begin="{end_bars + 1.6:.2f}s" dur="2.2s" repeatCount="indefinite"/></polygon>'
+                    if date in streak_days else '')
+                 # day number of the streak on top of its bar
+                 + ((lambda cx, cy, delay: f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{delay:.2f}s" dur="0.4s" fill="freeze"/>'
+                     f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="7.5" fill="{th["panel"]}" stroke="url(#ac)" stroke-width="1.4"/>'
+                     f'<text x="{cx:.1f}" y="{cy + 3.6:.1f}" text-anchor="middle" class="s" font-size="10" fill="{SKY}">{streak_no[date]}</text></g>')
+                    (*proj(x + 0.5, y + 0.5, h), end_bars + 0.3 + (streak_no[date] - 1) * 0.12)
                     if date in streak_days else '')
                  + '</g></g></g>')
     # month labels along the front edge
