@@ -69,12 +69,11 @@ if top and top["contributionCount"] > 0:
     options.append((":trophy:", f"Busiest day: {top['contributionCount']} on {day.day} {day:%b %Y}"))
 if week_lang:
     options.append((":computer:", f"Mostly {week_lang} this week"))
-if project:
-    options.append((":hammer:", f"Working on {project}"))
 options.append((":zap:", f"Active on {active_days} days in the last year"))
 
-emoji, message = options[now.hour % len(options)]
-print(f"{len(options)} statuses, hour {now.hour} -> {emoji} {message}")
+slot = (now.hour * 60 + now.minute) // 10
+emoji, message = options[slot % len(options)]
+print(f"{len(options)} statuses, slot {slot} -> {emoji} {message}")
 for e, m in options:
     print("  ", e, m)
 
