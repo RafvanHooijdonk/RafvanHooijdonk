@@ -12,9 +12,11 @@ TEST_DENSITY = os.environ.get("SKYLINE_TEST_DENSITY")
 LEVEL = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
 THEMES = {
     "light": dict(levels=["#e2e8f0", "#bae6fd", "#38bdf8", "#0ea5e9", "#8b5cf6"], fg="#0f172a", sub="#475569",
-                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", wave="0.6"),
+                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", wave="0.6",
+                  ink={1: "#0284c7", 2: "#0284c7", 3: "#0369a1", 4: "#7c3aed", "streak": "#16a34a", "top": "#d97706"}),
     "dark": dict(levels=["#1e293b", "#0c4a6e", "#0369a1", "#0ea5e9", "#8b5cf6"], fg="#f8fafc", sub="#94a3b8",
-                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.35"),
+                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.35",
+                 ink={1: "#7dd3fc", 2: "#38bdf8", 3: "#38bdf8", 4: "#a78bfa", "streak": "#22c55e", "top": "#f59e0b"}),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
 STREAK_COL, TOP_COL = "#22c55e", "#f59e0b"   # longest streak and busiest day, also in the stat block
@@ -245,14 +247,17 @@ def svg(th):
                 vis = f'values="1;1;0;0;1" keyTimes="0;{b0 - e:.5f};{b0:.5f};{1 - e:.5f};1"'
             else:
                 vis = f'values="0;0;1;1;0;0" keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"'
+            # label in the colour of its bar, as a pill in the page colour
+            kind = "top" if TOP and c[4] == TOP[4] else "streak" if len(STREAK) >= 2 and c in STREAK else c[3]
+            ink = th["ink"][kind]
             o.append(f'<g opacity="0"><animate attributeName="opacity" {vis} begin="{start:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
-                     f'<circle cx="{fx:.1f}" cy="{fy:.1f}" r="9" fill="{SKY}" opacity="0.35">'
+                     f'<circle cx="{fx:.1f}" cy="{fy:.1f}" r="9" fill="{ink}" opacity="0.35">'
                      f'<animate attributeName="r" values="4;11;4" dur="1s" repeatCount="indefinite"/>'
                      f'<animate attributeName="opacity" values="0.45;0;0.45" dur="1s" repeatCount="indefinite"/></circle>'
-                     f'<line x1="{fx:.1f}" y1="{fy:.1f}" x2="{fx:.1f}" y2="{by + 21:.1f}" stroke="{th["flag"]}" stroke-width="1.4"/>'
-                     f'<circle cx="{fx:.1f}" cy="{fy:.1f}" r="2.6" fill="{th["flag"]}"/>'
-                     f'<rect x="{bx:.1f}" y="{by:.1f}" width="{bw:.1f}" height="21" rx="5" fill="{th["flag"]}"/>'
-                     f'<text x="{bx + 9:.1f}" y="{by + 14.5:.1f}" class="m" font-size="11.5" fill="{th["flag_text"]}">{label}</text></g>')
+                     f'<line x1="{fx:.1f}" y1="{fy:.1f}" x2="{fx:.1f}" y2="{by + 21:.1f}" stroke="{ink}" stroke-width="1.3"/>'
+                     f'<circle cx="{fx:.1f}" cy="{fy:.1f}" r="3" fill="{ink}"/>'
+                     f'<rect x="{bx:.1f}" y="{by:.1f}" width="{bw:.1f}" height="21" rx="10.5" fill="{th["panel"]}" stroke="{ink}" stroke-width="1.3"/>'
+                     f'<text x="{bx + bw / 2:.1f}" y="{by + 14.5:.1f}" text-anchor="middle" class="m" font-size="11.5" fill="{ink}">{label}</text></g>')
     # stat block, top right, numbers counting up
     px, py = 640, 40
     o.append(f'<text x="{px}" y="{py}" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LAST 12 MONTHS</text>')
