@@ -12,13 +12,14 @@ TEST_DENSITY = os.environ.get("SKYLINE_TEST_DENSITY")
 LEVEL = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
 THEMES = {
     "light": dict(levels=["#e2e8f0", "#bae6fd", "#38bdf8", "#0ea5e9", "#8b5cf6"], fg="#0f172a", sub="#475569",
-                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", wave="0.6", floor="#eef2f7", page="#ffffff", edge="0.7",
+                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", wave="0.6", flag_ink="#a16207", floor="#eef2f7", page="#ffffff", edge="0.7",
                   ink={1: "#0284c7", 2: "#0284c7", 3: "#0369a1", 4: "#7c3aed", "streak": "#16a34a", "top": "#d97706"}),
     "dark": dict(levels=["#1e293b", "#0c4a6e", "#0369a1", "#0ea5e9", "#8b5cf6"], fg="#f8fafc", sub="#94a3b8",
-                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.35", floor="#161b26", page="#0d1117", edge="0.25",
+                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.35", flag_ink="#facc15", floor="#161b26", page="#0d1117", edge="0.25",
                  ink={1: "#7dd3fc", 2: "#38bdf8", 3: "#38bdf8", 4: "#a78bfa", "streak": "#22c55e", "top": "#f59e0b"}),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
+FLAG_COL = "#facc15"     # the bar whose flag is up
 
 # ---------------- data ----------------
 QUERY = """{ viewer { contributionsCollection { totalCommitContributions restrictedContributionsCount
@@ -209,8 +210,11 @@ def svg(th):
                  f'<polygon points="{pts(p3, p2, t2, t3)}" fill="url(#sl{lv})"/>'
                  f'<polygon points="{pts(p1, p2, t2, t1)}" fill="url(#sr{lv})"/>'
                  f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{top}" stroke="#ffffff" stroke-opacity="{th["edge"]}" stroke-width="0.8" stroke-linejoin="round"/>{haze}'
-                 + (f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{th["fg"]}" opacity="0">'
-                    f'<animate attributeName="opacity" {flag_vis(flag_no[date])} begin="{start:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/></polygon>'
+                 # while its flag is up the whole bar turns yellow
+                 + (f'<g opacity="0"><animate attributeName="opacity" {flag_vis(flag_no[date])} begin="{start:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
+                    f'<polygon points="{pts(p3, p2, t2, t3)}" fill="{shade(FLAG_COL, 0.8)}"/>'
+                    f'<polygon points="{pts(p1, p2, t2, t1)}" fill="{shade(FLAG_COL, 0.92)}"/>'
+                    f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{FLAG_COL}" stroke="#ffffff" stroke-opacity="0.6" stroke-width="0.8"/></g>'
                     if date in flag_no else '')
                  + '</g></g></g>')
     # month label: month and its total, top left; starts together with the stat block
@@ -267,7 +271,7 @@ def svg(th):
             by = max(4, fy - pole - 20)
             vis = flag_vis(i)
             # label in the colour of its bar, as a pill in the page colour
-            ink = th["ink"][c[3]]
+            ink = th["flag_ink"]
             o.append(f'<g opacity="0"><animate attributeName="opacity" {vis} begin="{start:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
                      f'<circle cx="{fx:.1f}" cy="{fy:.1f}" r="9" fill="{ink}" opacity="0.35">'
                      f'<animate attributeName="r" values="4;11;4" dur="1s" repeatCount="indefinite"/>'
