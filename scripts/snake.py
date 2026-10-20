@@ -90,9 +90,12 @@ for i, c in enumerate(CYCLE):  # every step of the cycle is one grid step
 def ahead(a, b):
     return (IDX[b] - IDX[a]) % AREA
 
-route = [CYCLE[0]]
-bites = []
-eaten_at = {}
+ALL_DAYS = {c for c, lv in grid.items() if lv > 0}
+MAX_LEN = START_LEN + len(ALL_DAYS)
+
+def reset():
+    global route, bites, eaten_at, targets, out_of_order
+    route, bites, eaten_at, targets, out_of_order = [CYCLE[0]], [], {}, set(ALL_DAYS), 0
 
 def length_at(t):
     return min(MAX_LEN, START_LEN + sum(1 for b in bites if b <= t))
@@ -108,45 +111,160 @@ def blocked(t, c, d):
             return True
     return False
 
-targets = {c for c, lv in grid.items() if lv > 0}
-MAX_LEN = START_LEN + len(targets)
-out_of_order = 0
-while targets:
-    t = len(route) - 1
-    head = route[-1]
-    L = length_at(t)
-    level = min(grid[c] for c in targets)        # lightest days first, the violet ones last
-    goal = min((c for c in targets if grid[c] == level), key=lambda c: ahead(head, c))
-    tail = route[max(0, t - (L - 1))]
-    room = ahead(head, tail) if L > 1 else AREA  # free cells ahead before the tail
-    cycle_next = CYCLE[(IDX[head] + 1) % AREA]    # always safe: the next cell on the cycle
-    def in_the_way(c):                            # a day of a later level that is not eaten yet
-        return c in targets and grid[c] != level
-    safe_moves = []
-    for n in neighbours(head):
-        if blocked(t, n, 1):
-            continue
-        jump = ahead(head, n)
-        # the next cycle cell is always allowed; a shortcut only forward and well clear of the tail,
-        # and only moves that bring the goal closer, so a detour can never turn into a loop
-        if (n == cycle_next or (L < AREA // 2 and 0 < jump < room - 3)) and ahead(n, goal) < ahead(head, goal):
-            safe_moves.append(n)
-    clear = [n for n in safe_moves if not in_the_way(n)]
-    if clear:
-        nxt = min(clear, key=lambda n: ahead(n, goal))
-    elif safe_moves:                              # boxed in by later days: eat the lightest one in the way
-        nxt = min(safe_moves, key=lambda n: (grid[n], ahead(n, goal)))
-    else:
-        nxt = cycle_next
-    route.append(nxt)
-    if nxt in targets:                            # never crawl over a day, it is eaten when reached
-        if grid[nxt] != level:
+def step_to(c):
+    """Move the head one cell; a day is eaten the moment the head reaches it."""
+    global out_of_order
+    route.append(c)
+    if c in targets:
+        if grid[c] != min(grid[x] for x in targets):
             out_of_order += 1
-        targets.discard(nxt)
-        eaten_at[nxt] = len(route) - 1
+        targets.discard(c)
+        eaten_at[c] = len(route) - 1
         bites.append(len(route) - 1)
-    if len(route) > 50 * AREA:
-        sys.exit("route did not finish")
+
+def verify():
+    """The two hard rules: never on an uneaten day, never two segments in one cell."""
+    for f, c in enumerate(route):
+        if c in eaten_at and eaten_at[c] > f:
+            return False
+    for f in range(len(route)):
+        visible = [route[f - i] for i in range(length_at(f)) if f - i >= 0]
+        if len(set(visible)) != len(visible):
+            return False
+    return not targets
+
+# --- planner 1: free routes around every uneaten day, safe as long as the tail stays reachable ---
+def paths_to(goals, limit=12):
+    t, start = len(route) - 1, route[-1]
+    prev, q, found = {start: None}, deque([(start, 0)]), []
+    while q and len(found) < limit:
+        c, d = q.popleft()
+        for n in neighbours(c):
+            if n in prev or blocked(t, n, d + 1):
+                continue
+            if n in targets and n not in goals:   # never through a day that is not eaten yet
+                continue
+            prev[n] = c
+            if n in goals:                        # a day is the end of a path, never a passage
+                path, x = [], n
+                while x != start:
+                    path.append(x)
+                    x = prev[x]
+                found.append(path[::-1])
+                continue
+            q.append((n, d + 1))
+    return found
+
+def tail_path():
+    t = len(route) - 1
+    L = length_at(t)
+    if L < 3:
+        return []
+    tail, start = route[max(0, t - (L - 1))], route[-1]
+    prev, q = {start: None}, deque([(start, 0)])
+    while q:
+        c, d = q.popleft()
+        for n in neighbours(c):
+            if n in prev or n in targets:
+                continue
+            if n == tail:
+                path, x = [n], c
+                while x != start:
+                    path.append(x)
+                    x = prev[x]
+                return path[::-1]
+            if not blocked(t, n, d + 1):
+                prev[n] = c
+                q.append((n, d + 1))
+    return None
+
+def safe_after(path):
+    n_route, n_bites, n_targets = len(route), len(bites), set(targets)
+    for c in path:
+        route.append(c)
+        if c in targets:
+            targets.discard(c)
+            bites.append(len(route) - 1)
+    ok = tail_path() is not None
+    del route[n_route:]
+    del bites[n_bites:]
+    targets.clear()
+    targets.update(n_targets)
+    return ok
+
+def plan_free():
+    reset()
+    waited = 0
+    while targets:
+        if len(route) > 20 * AREA:
+            return False
+        levels = sorted({grid[c] for c in targets})
+        L = length_at(len(route) - 1)
+        # first the lightest level; while the own body is in the way, follow the tail a while
+        # so it moves off; only then eat a later day that blocks the way
+        tries = levels[:1] if waited < 2 * L + 20 else levels
+        path = None
+        for lv in tries:
+            path = next((p for p in paths_to({c for c in targets if grid[c] == lv}) if safe_after(p)), None)
+            if path:
+                break
+        if path:
+            waited = 0
+            for c in path:
+                step_to(c)
+            continue
+        chase = tail_path()
+        if chase:
+            waited += 1
+            step_to(chase[0])
+            continue
+        if waited < 2 * L + 20:                   # cannot even follow the tail: allow later days now
+            waited = 2 * L + 20
+            continue
+        return False
+    return verify()
+
+# --- planner 2: a Hamiltonian cycle with safe shortcuts, always finishes ---
+def plan_cycle():
+    reset()
+    while targets:
+        t = len(route) - 1
+        head = route[-1]
+        L = length_at(t)
+        level = min(grid[c] for c in targets)
+        goal = min((c for c in targets if grid[c] == level), key=lambda c: ahead(head, c))
+        tail = route[max(0, t - (L - 1))]
+        room = ahead(head, tail) if L > 1 else AREA
+        cycle_next = CYCLE[(IDX[head] + 1) % AREA]
+        safe_moves = []
+        for n in neighbours(head):
+            if blocked(t, n, 1):
+                continue
+            jump = ahead(head, n)
+            if (n == cycle_next or (L < AREA // 2 and 0 < jump < room - 3)) and ahead(n, goal) < ahead(head, goal):
+                safe_moves.append(n)
+        clear = [n for n in safe_moves if not (n in targets and grid[n] != level)]
+        if clear:
+            nxt = min(clear, key=lambda n: ahead(n, goal))
+        elif safe_moves:
+            nxt = min(safe_moves, key=lambda n: (grid[n], ahead(n, goal)))
+        else:
+            nxt = cycle_next
+        step_to(nxt)
+        if len(route) > 50 * AREA:
+            sys.exit("route did not finish")
+    if not verify():
+        sys.exit("cycle route broke a rule")
+
+# run both, keep the free route when it finished and keeps the order at least as well
+free_ok = plan_free()
+free = (list(route), list(bites), dict(eaten_at), out_of_order) if free_ok else None
+plan_cycle()
+planner = "cycle"
+if free and free[3] <= out_of_order:
+    route, bites, eaten_at, out_of_order = free
+    targets = set()
+    planner = "free"
 last_bite = bites[-1] if bites else 0
 
 # coil up: keep turning towards the own body, so it winds into a tight spiral
@@ -314,10 +432,10 @@ if TEST_DENSITY is not None:  # stress test: draw both themes, write only when a
         if os.environ.get("SNAKE_TEST_OUT"):
             os.makedirs(os.environ["SNAKE_TEST_OUT"], exist_ok=True)
             open(os.path.join(os.environ["SNAKE_TEST_OUT"], name), "w").write(out)
-    print(f"ok: density {TEST_DENSITY}, {len(bites)} days, length {length_at(R - 1)}, {R} steps, out of order {out_of_order}")
+    print(f"ok: density {TEST_DENSITY}, {len(bites)} days, length {length_at(R - 1)}, {R} steps, out of order {out_of_order}, {planner}")
     sys.exit(0)
 os.makedirs(OUT, exist_ok=True)
 for name in THEMES:
     with open(os.path.join(OUT, name), "w") as f:
         f.write(svg(name))
-print(f"{len(bites)} days eaten, {R} steps, {DUR}s per round, eaten out of order to get past: {out_of_order}")
+print(f"{len(bites)} days eaten, {R} steps, {DUR}s per round, eaten out of order to get past: {out_of_order}, planner: {planner}")
