@@ -362,7 +362,7 @@ def in_group(g):
 
 def tools_card(t):
     rows = [(g, in_group(g)[:5]) for g in GROUPS]
-    rows = [(g, items) for g, items in rows if items]
+    rows = [(g, items) for g, items in rows if items] + [("Tools", [("daily", d) for d in DAILY_TOOLS])]
     W, rh = 1000, 64
     H = 70 + len(rows) * rh + 14
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
@@ -379,14 +379,19 @@ def tools_card(t):
         if g == "Testing" and test_files:
             o.append(f'<text x="32" y="{y+48}" class="m" font-size="10.5" fill="{SKY}">{test_files:,} test files</text>')
         for k, key in enumerate(items):
-            label, _, folder, variant = INFO[key]
+            if isinstance(key, tuple):            # a daily tool, no repository count
+                label, folder, variant = key[1]
+                sub = "used daily"
+            else:
+                label, _, folder, variant = INFO[key]
+                sub = f'{found[key]} repo{"s" if found[key] != 1 else ""}'
             x = 176 + k * 158
             lg = tool_logo(folder, variant)
             o.append(f'<rect x="{x-4}" y="{y+14}" width="34" height="34" rx="8" fill="{t["tile"]}" stroke="{t["line"]}"/>')
             o.append(f'<image href="{lg}" x="{x+2}" y="{y+20}" width="22" height="22"/>' if lg
                      else f'<circle cx="{x+13}" cy="{y+31}" r="6" fill="{SKY}"/>')
             o.append(f'<text x="{x+36}" y="{y+29}" class="i" font-size="13.5" fill="{t["fg"]}">{label}</text>'
-                     f'<text x="{x+36}" y="{y+46}" class="m" font-size="10.5" fill="{t["mute"]}">{found[key]} repo{"s" if found[key] != 1 else ""}</text>')
+                     f'<text x="{x+36}" y="{y+46}" class="m" font-size="10.5" fill="{t["mute"]}">{sub}</text>')
     o.append('</svg>')
     return "\n".join(o)
 
@@ -396,13 +401,13 @@ def tools_card(t):
 # group gets a wide tile; a thin bar shows how much it is used; one tile at a time lights
 # up in the colour of its own logo.
 STACK_MIN_REPOS = 2
-STACK_EXTRA = [("Git", "git", "original", "DevOps"), ("GitHub", "github", "original", "DevOps"),
-               ("Supabase", "supabase", "original", "Data & AI"), ("Azure", "azure", "original", "DevOps"),
-               ("VS Code", "vscode", "original", "Tools"), ("Windows", "windows11", "original", "Tools"),
-               ("macOS", "apple", "original", "Tools")]
+STACK_EXTRA = [("Supabase", "supabase", "original", "Data & AI"), ("Azure", "azure", "original", "DevOps")]
+# everyday tools: not part of the stack, shown as their own row on the tooling card
+DAILY_TOOLS = [("Git", "git", "original"), ("GitHub", "github", "original"), ("VS Code", "vscode", "original"),
+               ("Windows", "windows11", "original"), ("macOS", "apple", "original")]
 STACK_GROUPS = ["Languages", "Frameworks", "Data & AI", "Testing", "DevOps", "Tools"]
 # development helpers: real tools, but not what a tech stack is made of (still on the tooling card)
-STACK_SKIP = {"nodemon", "postcss", "babel"}
+STACK_SKIP = {"nodemon", "postcss", "babel", "eslint", "githubactions", "swagger", "jupyter", "prettier"}
 
 def brand(folder, fallback=SKY):
     e = CATALOG.get(folder)
