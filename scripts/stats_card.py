@@ -127,8 +127,8 @@ FONTS = ("<style>" + "".join(
     + ".i{font-family:'In',Helvetica,Arial,sans-serif}.s{font-family:'InS',Helvetica,Arial,sans-serif;font-weight:600}"
     + ".m{font-family:'Mono',Menlo,Consolas,monospace}.d{font-family:'Sync',Arial Black,sans-serif;font-weight:700}</style>")
 THEMES = {
-    "dark": dict(panel="#0b0b12", line="#1e293b", fg="#f8fafc", sub="#94a3b8", mute="#64748b", track="#0f172a", tile="#f1f5f9"),
-    "light": dict(panel="#ffffff", line="#e2e8f0", fg="#0f172a", sub="#475569", mute="#64748b", track="#f1f5f9", tile="#f8fafc"),
+    "dark": dict(panel="#0b0b12", line="#1e293b", fg="#f8fafc", sub="#94a3b8", mute="#64748b", track="#0f172a", tile="#f1f5f9", btile="#111827", plate="#e2e8f0"),
+    "light": dict(panel="#ffffff", line="#e2e8f0", fg="#0f172a", sub="#475569", mute="#64748b", track="#f1f5f9", tile="#f8fafc", btile="#f8fafc", plate=None),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
 # Donut colours by rank, from sky to violet, so the card stays in the README palette
@@ -378,49 +378,103 @@ def tools_card(t):
     o.append('</svg>')
     return "\n".join(o)
 
-# ---------- stack: languages and tools, filled automatically ----------
-# Languages by share, then tools found in at least two repositories, then a few things that
-# never show up in code (editor, platforms, services used in repos outside this count).
+# ---------- stack: a bento per category, filled automatically ----------
+# Languages by share, then every tool found in at least two repositories, grouped like the
+# tooling card, plus a few things that never show up in code. The most used item of each
+# group gets a wide tile; a thin bar shows how much it is used; one tile at a time lights
+# up in the colour of its own logo.
 STACK_MIN_REPOS = 2
-STACK_EXTRA = [("Git", "git", "original"), ("GitHub", "github", "original"), ("VS Code", "vscode", "original"),
-               ("Supabase", "supabase", "original"), ("Azure", "azure", "original"),
-               ("Windows", "windows11", "original"), ("macOS", "apple", "original")]
+STACK_EXTRA = [("Git", "git", "original", "DevOps"), ("GitHub", "github", "original", "DevOps"),
+               ("Supabase", "supabase", "original", "Data & AI"), ("Azure", "azure", "original", "DevOps"),
+               ("VS Code", "vscode", "original", "Tools"), ("Windows", "windows11", "original", "Tools"),
+               ("macOS", "apple", "original", "Tools")]
+STACK_GROUPS = ["Languages", "Frameworks", "Data & AI", "Testing", "DevOps", "Tools"]
+
+def brand(folder, fallback=SKY):
+    e = CATALOG.get(folder)
+    c = (e or {}).get("color") or fallback
+    return c if c.startswith("#") and len(c) in (4, 7) else fallback
 
 def stack_items():
-    items, seen = [], set()
+    """{group: [(label, logo, metric text, usage 0..1, brand colour)]}"""
+    groups = {g: [] for g in STACK_GROUPS}
+    seen = set()
+    top_share = max([f for n, f, c in parts if n != "Other"] + [1e-9])
     for n, f, c in parts:
         if n != "Other" and logos.get(n):
-            items.append((n, logos[n]))
+            groups["Languages"].append((n, logos[n], f"{f * 100:.0f}%", f / top_share, c))
             seen.add(n)
     tools = sorted([k for k in found if found[k] >= STACK_MIN_REPOS], key=lambda k: (-found[k], INFO[k][0].lower()))
+    most = max([found[k] for k in tools] + [1])
     for k in tools:
-        label, _, folder, variant = INFO[k]
+        label, group, folder, variant = INFO[k]
         lg = tool_logo(folder, variant)
         if lg and label not in seen:
-            items.append((label, lg))
+            groups[group].append((label, lg, f"{found[k]} repos", found[k] / most, brand(folder)))
             seen.add(label)
-    for label, folder, variant in STACK_EXTRA:
+    for label, folder, variant, group in STACK_EXTRA:
         lg = tool_logo(folder, variant)
         if lg and label not in seen:
-            items.append((label, lg))
+            groups[group].append((label, lg, "", 0, brand(folder)))
             seen.add(label)
-    return items
+    return {g: items for g, items in groups.items() if items}
 
-def stack_card(t, items):
-    per_row, cell = 12, 78
-    rows = (len(items) + per_row - 1) // per_row
-    W = 1000
-    H = rows * 84 + 8
-    x0 = (W - per_row * cell) / 2 + (cell - 52) / 2
-    o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS]
-    for i, (label, lg) in enumerate(items):
-        r, c = divmod(i, per_row)
-        x, y = x0 + c * cell, 4 + r * 84
-        delay = 0.04 * i
-        o.append(f'<g opacity="1"><animate attributeName="opacity" values="0;0;1" keyTimes="0;{delay/(delay+0.4):.3f};1" dur="{delay+0.4:.2f}s"/>'
-                 f'<rect x="{x:.1f}" y="{y}" width="52" height="52" rx="12" fill="{t["tile"]}" stroke="{t["line"]}"/>'
-                 f'<image href="{lg}" x="{x+11:.1f}" y="{y+11}" width="30" height="30"/>'
-                 f'<text x="{x+26:.1f}" y="{y+70}" text-anchor="middle" class="m" font-size="10" fill="{t["sub"]}">{label.replace("&", "&amp;")}</text></g>')
+def stack_card(t, groups):
+    W, LABEL, SMALL, WIDE, GAP, TH, ROWGAP = 1000, 132, 72, 168, 8, 78, 22
+    x_start, x_end = 32 + LABEL, W - 32
+    # lay out: wide first tile, then small tiles, wrapping inside the group
+    placed, y = [], 8
+    for g, items in groups.items():
+        x, row_y = x_start, y
+        placed.append(("label", g, 32, y))
+        for i, it in enumerate(items):
+            w = WIDE if i == 0 else SMALL
+            if x + w > x_end:
+                x, row_y = x_start, row_y + TH + GAP
+            placed.append(("tile", it, x, row_y, w))
+            x += w + GAP
+        y = row_y + TH + ROWGAP
+    H = y - ROWGAP + 8
+    tiles = [p for p in placed if p[0] == "tile"]
+    spot, per = len(tiles), 1.3
+    loop = spot * per
+    o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
+         f'<defs><linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
+         '<filter id="gl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter></defs>']
+    esc = lambda s: s.replace("&", "&amp;")
+    k = 0
+    for p in placed:
+        if p[0] == "label":
+            _, g, x, yy = p
+            o.append(f'<text x="{x}" y="{yy + 22}" class="m" font-size="10.5" fill="{SKY}" letter-spacing="1.6">{esc(g.upper())}</text>')
+            continue
+        _, (label, lg, metric, use, col), x, yy, w = p
+        a0, b0, e = k / spot, (k + 1) / spot, 0.35 / loop
+        vis = (f'values="0;0;1;1;0;0" keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"' if k else
+               f'values="1;1;0;0;1" keyTimes="0;{b0 - e:.5f};{b0:.5f};{1 - e:.5f};1"')
+        k += 1
+        # light spot in the logo's own colour
+        o.append(f'<g opacity="0"><animate attributeName="opacity" {vis} begin="1s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
+                 f'<rect x="{x - 2}" y="{yy - 2}" width="{w + 4}" height="{TH + 4}" rx="14" fill="{col}" opacity="0.35" filter="url(#gl)"/>'
+                 f'<rect x="{x}" y="{yy}" width="{w}" height="{TH}" rx="12" fill="{col}" fill-opacity="0.10" stroke="{col}" stroke-width="1.4"/></g>')
+        o.append(f'<rect x="{x}" y="{yy}" width="{w}" height="{TH}" rx="12" fill="{t["btile"]}" fill-opacity="0.8" stroke="{t["line"]}"/>')
+        bar_w = (w - 24) * max(0.04, use) if metric else 0
+        if w == WIDE:
+            if t["plate"]:  # dark mode: a light plate keeps dark logos visible
+                o.append(f'<rect x="{x + 10}" y="{yy + 12}" width="42" height="42" rx="9" fill="{t["plate"]}"/>')
+            o.append(f'<image href="{lg}" x="{x + 14}" y="{yy + 16}" width="34" height="34"/>'
+                     f'<text x="{x + 58}" y="{yy + 30}" class="s" font-size="14" fill="{t["fg"]}">{esc(label)}</text>'
+                     f'<text x="{x + 58}" y="{yy + 47}" class="m" font-size="10.5" fill="{t["sub"]}">{esc(metric)}</text>')
+        else:
+            if t["plate"]:
+                o.append(f'<rect x="{x + (w - 32) / 2:.1f}" y="{yy + 8}" width="32" height="32" rx="7" fill="{t["plate"]}"/>')
+            o.append(f'<image href="{lg}" x="{x + (w - 24) / 2:.1f}" y="{yy + 12}" width="24" height="24"/>'
+                     f'<text x="{x + w / 2:.1f}" y="{yy + 52}" text-anchor="middle" class="i" font-size="10" fill="{t["fg"]}">{esc(label)}</text>')
+        if metric:
+            o.append(f'<rect x="{x + 12}" y="{yy + TH - 8}" width="{w - 24}" height="3" rx="1.5" fill="{t["line"]}"/>'
+                     f'<rect x="{x + 12}" y="{yy + TH - 8}" width="{bar_w:.1f}" height="3" rx="1.5" fill="url(#ac)"/>')
+            if w != WIDE:
+                o.append(f'<text x="{x + w / 2:.1f}" y="{yy + 63}" text-anchor="middle" class="m" font-size="8.5" fill="{t["mute"]}">{esc(metric)}</text>')
     o.append('</svg>')
     return "\n".join(o)
 
@@ -543,7 +597,7 @@ with open(os.path.join(ROOT, "STATS.md"), "w") as f:
     f.write("\n".join(md))
 for pr in PROJECTS:
     print(f"{pr['name']}:", ", ".join(l for l, _ in pr["items"]))
-print("stack:", ", ".join(l for l, _ in STACK))
+print("stack:", "; ".join(f"{g}: {len(v)}" for g, v in STACK.items()))
 print("test files:", test_files)
 for g in GROUPS:
     print(f"{g}:", ", ".join(f"{INFO[k][0]} {found[k]}" for k in in_group(g)))
