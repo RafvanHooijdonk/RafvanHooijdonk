@@ -1,6 +1,11 @@
-import base64, datetime, json, math, os, sys, urllib.request
+import base64, zoneinfo, datetime, json, math, os, sys, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+AS_OF = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Amsterdam")).date() - datetime.timedelta(days=1)
+AS_OF_TEXT = f"as of {AS_OF:%d/%m/%Y} 23:59"
+_ams = zoneinfo.ZoneInfo("Europe/Amsterdam")
+RANGE_TO = datetime.datetime.combine(AS_OF, datetime.time(23, 59, 59), _ams).isoformat()
+RANGE_FROM = datetime.datetime.combine(AS_OF - datetime.timedelta(days=364), datetime.time(0, 0), _ams).isoformat()
 TOKEN = os.environ.get("GH_TOKEN", "")
 TEST_DENSITY = os.environ.get("SKYLINE_TEST_DENSITY")
 LEVEL = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
@@ -15,11 +20,11 @@ THEMES = {
 SKY, VIO = "#0ea5e9", "#8b5cf6"
 FLAG_COL = "#facc15"
 
-QUERY = """{ viewer { contributionsCollection { totalCommitContributions restrictedContributionsCount
+QUERY = """{ viewer { contributionsCollection(from: "%s", to: "%s") { totalCommitContributions restrictedContributionsCount
   totalPullRequestContributions totalPullRequestReviewContributions totalIssueContributions
   contributionCalendar { totalContributions weeks { contributionDays { contributionCount contributionLevel weekday date } } } } } }"""
 if TEST_DENSITY is None:
-    req = urllib.request.Request("https://api.github.com/graphql", data=json.dumps({"query": QUERY}).encode(),
+    req = urllib.request.Request("https://api.github.com/graphql", data=json.dumps({"query": QUERY % (RANGE_FROM, RANGE_TO)}).encode(),
                                  headers={"Authorization": f"bearer {TOKEN}", "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=30) as r:
         cc = json.load(r)["data"]["viewer"]["contributionsCollection"]
@@ -258,7 +263,8 @@ def svg(th):
                      f'<text x="{bx + bw / 2:.1f}" y="{by + 14.5:.1f}" text-anchor="middle" class="m" font-size="11.5" fill="{ink}">{label}</text></g>')
     px, py = 640, 40
     o.append(f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{INTRO}s" dur="0.5s" fill="freeze"/>')
-    o.append(f'<text x="{px}" y="{py}" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LAST 12 MONTHS</text>')
+    o.append(f'<text x="{px}" y="{py}" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LAST 12 MONTHS</text>'
+             f'<text x="{W - 40}" y="{py}" class="m" font-size="10.5" fill="{th["mute"]}" text-anchor="end">{AS_OF_TEXT}</text>')
     for i, (label, value) in enumerate(STATS):
         cx, cy = px + (i % 2) * 165, py + 46 + (i // 2) * 70
         steps = 14

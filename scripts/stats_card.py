@@ -1,6 +1,11 @@
-import base64, json, math, os, re, urllib.error, urllib.parse, urllib.request
+import base64, datetime, zoneinfo, json, math, os, re, urllib.error, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+AS_OF = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Amsterdam")).date() - datetime.timedelta(days=1)
+AS_OF_TEXT = f"as of {AS_OF:%d/%m/%Y} 23:59"
+_ams = zoneinfo.ZoneInfo("Europe/Amsterdam")
+RANGE_TO = datetime.datetime.combine(AS_OF, datetime.time(23, 59, 59), _ams).isoformat()
+RANGE_FROM = datetime.datetime.combine(AS_OF - datetime.timedelta(days=364), datetime.time(0, 0), _ams).isoformat()
 TOKEN = os.environ["GH_TOKEN"]
 IGNORED = {"Jupyter Notebook", "ShaderLab", "HLSL", "Dockerfile", "Procfile", "Batchfile", "PowerShell", "Shell"}
 TOP = 6
@@ -27,7 +32,7 @@ def logo(name):
         return None
 
 QUERY = """
-query($after: String) {
+query($after: String, $from: DateTime, $to: DateTime) {
   viewer {
     login
     repositories(first: 100, after: $after, ownerAffiliations: OWNER, isFork: false) {
@@ -35,7 +40,7 @@ query($after: String) {
       pageInfo { hasNextPage endCursor }
       nodes { name owner { login } defaultBranchRef { name } languages(first: 20, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name color } } } }
     }
-    contributionsCollection {
+    contributionsCollection(from: $from, to: $to) {
       contributionCalendar { totalContributions }
       totalCommitContributions
       restrictedContributionsCount
@@ -58,7 +63,7 @@ query($org: String!, $after: String) {
 
 def gql(after=None, query=QUERY, **extra):
     req = urllib.request.Request("https://api.github.com/graphql",
-        data=json.dumps({"query": query, "variables": {"after": after, **extra}}).encode(),
+        data=json.dumps({"query": query, "variables": {"after": after, **({"from": RANGE_FROM, "to": RANGE_TO} if query is QUERY else {}), **extra}}).encode(),
         headers={"Authorization": f"bearer {TOKEN}", "Content-Type": "application/json"})
     with urllib.request.urlopen(req) as r:
         body = json.load(r)
@@ -101,10 +106,11 @@ for org in EXTRA_ORGS:
 
 total = sum(langs.values()) or 1
 ranked = sorted(langs.items(), key=lambda kv: -kv[1])
-top = ranked[:TOP]
-rest = sum(s for _, s in ranked[TOP:])
+named = [kv for kv in ranked if kv[1] / total >= 0.001][:7]
+top = named
+rest = sum(s for n, s in ranked if (n, s) not in named)
 parts = [(n, s / total, colors[n]) for n, s in top]
-if rest:
+if rest / total >= 0.0005:
     parts.append(("Other", rest / total, "#64748b"))
 logos = {n: logo(n) for n, _, _ in parts}
 
@@ -176,7 +182,8 @@ def card(t):
                  + f'<text x="{lx+42}" y="{ly}" class="i" font-size="14" fill="{t["fg"]}">{n}</text>'
                  f'<text x="{lx+178}" y="{ly}" class="m" font-size="12.5" fill="{t["sub"]}" text-anchor="end">{f*100:.1f}%</text>')
     o.append(f'<line x1="640" y1="32" x2="640" y2="{H-32}" stroke="{t["line"]}"/>')
-    o.append(f'<text x="672" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LAST 12 MONTHS</text>')
+    o.append(f'<text x="672" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LAST 12 MONTHS</text>'
+             f'<text x="{W - 32}" y="44" class="m" font-size="10.5" fill="{t["mute"]}" text-anchor="end">{AS_OF_TEXT}</text>')
     for i, (num, label) in enumerate(numbers):
         col, row = i % 2, i // 2
         nx, ny = 672 + col * 160, 104 + row * 82
@@ -368,7 +375,7 @@ def tools_card(t):
          f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="16" fill="{t["panel"]}" stroke="{t["line"]}"/>',
          f'<rect x="32" y="0.5" width="48" height="2" fill="url(#ac)"/>',
          f'<text x="32" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">TOOLING &amp; TESTING</text>',
-         f'<text x="{W-32}" y="44" class="m" font-size="11" fill="{t["mute"]}" text-anchor="end">used in my repositories</text>']
+         f'<text x="{W-32}" y="44" class="m" font-size="11" fill="{t["mute"]}" text-anchor="end">used in my repositories &#183; {AS_OF_TEXT}</text>']
     for r, (g, items) in enumerate(rows):
         y = 70 + r * rh
         if r:
