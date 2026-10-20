@@ -195,7 +195,7 @@ def card(t):
 with urllib.request.urlopen("https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.json", timeout=30) as r:
     CATALOG = {e["name"]: e for e in json.load(r)}
 SKIP_TAGS = {"language", "editor", "ide", "os", "browser"}
-SKIP = {"nodejs", "npm", "yarn", "pnpm", "git", "github", "json", "markdown", "yaml", "babel", "html5", "css3", "bash"}
+SKIP = {"npm", "yarn", "pnpm", "git", "github", "json", "markdown", "yaml", "babel", "html5", "css3", "bash"}
 
 def norm(s): return re.sub(r"[^a-z0-9]", "", s.lower())
 LOOKUP = {}
@@ -225,7 +225,7 @@ SPECIAL = {"xunit": ("xUnit", "Testing"), "nunit": ("NUnit", "Testing"), "mstest
 NUGET_SPECIAL = {"xunit": "xunit", "nunit": "nunit", "mstest.testframework": "mstest", "microsoft.entityframeworkcore": "efcore"}
 with open(os.path.join(ROOT, "scripts", "tool-names.json")) as f:
     PRETTY = json.load(f)
-GROUP_FIX = {"vitejs": "Frameworks", "eslint": "DevOps", "githubactions": "DevOps", "jupyter": "Data & AI",
+GROUP_FIX = {"nodejs": "Frameworks", "vitejs": "Frameworks", "eslint": "DevOps", "githubactions": "DevOps", "jupyter": "Data & AI",
              "pandas": "Data & AI", "numpy": "Data & AI", "supabase": "Data & AI", "prisma": "Data & AI",
              "typeorm": "Data & AI", "sqlalchemy": "Data & AI", "nodemon": "DevOps", "unity": "Frameworks",
              "opencv": "Data & AI", "swagger": "DevOps", "nginx": "DevOps"}
@@ -247,6 +247,7 @@ def info(key):
 
 PATH_RULES = [
     (lambda p: p.startswith(".github/workflows/") and p.endswith((".yml", ".yaml")), "githubactions"),
+    (lambda p: p.rsplit("/", 1)[-1] == "package.json", "nodejs"),
     (lambda p: p.rsplit("/", 1)[-1] in ("dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yaml"), "docker"),
     (lambda p: "/jest.config." in "/" + p, "jest"), (lambda p: "/vitest.config." in "/" + p, "vitest"),
     (lambda p: "/playwright.config." in "/" + p, "playwright"), (lambda p: "/cypress.config." in "/" + p, "cypressio"),

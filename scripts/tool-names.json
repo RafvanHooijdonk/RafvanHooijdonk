@@ -200,6 +200,7 @@
  "nhibernate": "NHibernate",
  "nim": "Nim",
  "nimble": "Nimble",
+ "nodejs": "Node.js",
  "nodemon": "nodemon",
  "nodewebkit": "NW.js",
  "nomad": "Nomad",

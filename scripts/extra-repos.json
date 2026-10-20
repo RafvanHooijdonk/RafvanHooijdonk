@@ -7,6 +7,7 @@
       "githubactions",
       "jest",
       "nestjs",
+      "nodejs",
       "playwright",
       "react",
       "rxjs",
@@ -16,6 +17,6 @@
       "vitejs",
       "vitest"
     ],
-    "test_files": 125
+    "test_files": 126
   }
 ]

@@ -6,7 +6,7 @@ Updated 20 October 2026. Counted over my own repositories, Alpha-Stock and Fleet
 
 | Language | Share |
 | --- | --- |
-| TypeScript | 45.2% |
+| TypeScript | 45.3% |
 | JavaScript | 25.9% |
 | Python | 11.6% |
 | HTML | 8.7% |
@@ -19,7 +19,7 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 ## Tooling and testing
 
-815 test files found.
+816 test files found.
 
 ### Testing
 
@@ -46,6 +46,7 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 | Tool | Repositories |
 | --- | --- |
+| Node.js | 12 |
 | NestJS | 6 |
 | React | 6 |
 | RxJS | 6 |
