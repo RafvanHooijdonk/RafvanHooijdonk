@@ -12,9 +12,9 @@ TEST_DENSITY = os.environ.get("SKYLINE_TEST_DENSITY")
 LEVEL = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
 THEMES = {
     "light": dict(levels=["#e2e8f0", "#bae6fd", "#38bdf8", "#0ea5e9", "#8b5cf6"], fg="#0f172a", sub="#475569",
-                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff"),
+                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", wave="0.55"),
     "dark": dict(levels=["#1e293b", "#0c4a6e", "#0369a1", "#0ea5e9", "#8b5cf6"], fg="#f8fafc", sub="#94a3b8",
-                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204"),
+                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.3"),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
 
@@ -152,9 +152,14 @@ def svg(th):
                  f'<polygon points="{pts(p3, p2, t2, t3)}" fill="{shade(top, 0.78)}"/>'
                  f'<polygon points="{pts(p1, p2, t2, t1)}" fill="{shade(top, 0.9)}"/>'
                  f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{top}"/>'
-                 + (f'<polygon points="{pts(t0, t1, t2, t3)}" fill="none" stroke="url(#ac)" stroke-width="1.8" filter="url(#glow)" opacity="0">'
+                 # light wave: every few seconds a soft highlight glides over all tops, left to right
+                 + (lambda a: f'<polygon points="{pts(t0, t1, t2, t3)}" fill="#ffffff" opacity="0">'
+                    f'<animate attributeName="opacity" values="0;0;{th["wave"]};0;0" keyTimes="0;{a:.3f};{a + 0.04:.3f};{a + 0.1:.3f};1" '
+                    f'begin="{end_bars:.2f}s" dur="6s" repeatCount="indefinite"/></polygon>')(x / len(weeks) * 0.85)
+                 + (f'<polygon points="{pts(t0, t1, t2, t3)}" fill="none" stroke="url(#ac)" stroke-width="2.6" filter="url(#glow)" opacity="0">'
                     f'<animate attributeName="opacity" values="0;1" begin="{end_bars + (x - STREAK[0][0]) * 0.06:.2f}s" dur="0.4s" fill="freeze"/>'
-                    f'<animate attributeName="opacity" values="1;0.3;1" begin="{end_bars + 1.6:.2f}s" dur="2.6s" repeatCount="indefinite"/></polygon>'
+                    f'<animate attributeName="opacity" values="1;0.35;1" begin="{end_bars + 1.6:.2f}s" dur="2.2s" repeatCount="indefinite"/>'
+                    f'<animate attributeName="stroke-width" values="2.6;4;2.6" begin="{end_bars + 1.6:.2f}s" dur="2.2s" repeatCount="indefinite"/></polygon>'
                     if date in streak_days else '')
                  + '</g></g></g>')
     # month labels along the front edge
