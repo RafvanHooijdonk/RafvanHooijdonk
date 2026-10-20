@@ -221,7 +221,9 @@ def match(token):
 CANON = {"vite": "vitejs"}
 
 SPECIAL = {"xunit": ("xUnit", "Testing"), "nunit": ("NUnit", "Testing"), "mstest": ("MSTest", "Testing"),
-           "efcore": ("EF Core", "Data & AI")}
+           "efcore": ("EF Core", "Data & AI"), "siege": ("Siege", "Testing"), "k6load": ("k6", "Testing"),
+           "jmeter": ("JMeter", "Testing"), "locust": ("Locust", "Testing")}
+TEXT_LOGO = {"siege": "#b91c1c", "jmeter": "#d22128", "locust": "#2d6a4f"}
 NUGET_SPECIAL = {"xunit": "xunit", "nunit": "nunit", "mstest.testframework": "mstest", "microsoft.entityframeworkcore": "efcore"}
 with open(os.path.join(ROOT, "scripts", "tool-names.json")) as f:
     PRETTY = json.load(f)
@@ -236,6 +238,10 @@ DEVOPS_TAGS = {"container", "deploy", "deployment", "cloud", "hosting", "ci", "c
 def info(key):
     if key in SPECIAL:
         name, group = SPECIAL[key]
+        if key in TEXT_LOGO:
+            return name, group, "text:" + name, TEXT_LOGO[key]
+        if key == "k6load":
+            return name, group, "k6", "original"
         return name, group, "dot-net", "original"
     e = CATALOG[key]
     tags = set(e.get("tags", []))
@@ -265,7 +271,13 @@ PATH_RULES = [
     (lambda p: p.endswith("netlify.toml"), "netlify"), (lambda p: p.endswith("azure-pipelines.yml"), "azuredevops"),
     (lambda p: p.endswith("nginx.conf") or "/nginx/" in "/" + p, "nginx"),
 ]
-PATH_RULES = [(t, k) for t, k in PATH_RULES if k in CATALOG]
+PATH_RULES += [  # load testing, found by name since these have no manifest
+    (lambda p: any(part.startswith("siege") for part in p.split("/")) or p.endswith(".siegerc"), "siege"),
+    (lambda p: p.endswith(".jmx"), "jmeter"),
+    (lambda p: p.endswith("locustfile.py"), "locust"),
+    (lambda p: "/k6/" in "/" + p or p.rsplit("/", 1)[-1].startswith("k6"), "k6load"),
+]
+PATH_RULES = [(t, k) for t, k in PATH_RULES if k in CATALOG or k in SPECIAL]
 
 def rest(path, raw=False):
     req = urllib.request.Request("https://api.github.com" + path, headers={
@@ -355,6 +367,8 @@ INFO = {k: info(k) for k in found}
 tool_logo_cache = {}
 def tool_logo(folder, variant):
     key = (folder, variant)
+    if folder.startswith("text:"):
+        return text_logo(folder[5:], variant)
     if key not in tool_logo_cache:
         try:
             with urllib.request.urlopen(DEVICON.format(folder, variant), timeout=10) as r:
@@ -436,7 +450,8 @@ def stack_items():
         if ignored_seen.get(n, 0) > 0 and logo(n):
             groups["Languages"].append((n, logo(n), "scripts", 0, "#4eaa25" if n == "Shell" else "#5391fe"))
             seen.add(n)
-    tools = sorted([k for k in found if found[k] >= STACK_MIN_REPOS], key=lambda k: (-found[k], INFO[k][0].lower()))
+    tools = sorted([k for k in found if found[k] >= (1 if INFO[k][1] == "Testing" else STACK_MIN_REPOS)],
+                   key=lambda k: (-found[k], INFO[k][0].lower()))
     most = max([found[k] for k in tools] + [1])
     for k in tools:
         if k in STACK_SKIP:

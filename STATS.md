@@ -30,6 +30,7 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 | Cypress | 1 |
 | Playwright | 1 |
 | pytest | 1 |
+| Siege | 1 |
 
 ### DevOps
 
