@@ -482,6 +482,9 @@ def stack_card(t, groups):
     diag_max = (per_row - 1) + (rows - 1) * 2
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
          f'<defs><linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
+         '<linearGradient id="sweep" gradientUnits="userSpaceOnUse" x1="-60" y1="0" x2="0" y2="0">'
+         '<stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>'
+         '<animateTransform attributeName="gradientTransform" type="translate" values="0 0;0 0;320 0;320 0" keyTimes="0;0.02;0.3;1" begin="1s" dur="6s" repeatCount="indefinite"/></linearGradient>'
          '<linearGradient id="glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0.25" stop-color="#ffffff" stop-opacity="0"/>'
          '<stop offset="0.5" stop-color="#ffffff" stop-opacity="1"/><stop offset="0.75" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs>']
     esc = lambda s: s.replace("&", "&amp;")
@@ -576,12 +579,15 @@ def project_card(t, pr, items, rows):
          f'<linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
          '<linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.5" stop-color="#fff" stop-opacity="0.9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
          '<clipPath id="tb"><rect x="24" y="0.5" width="48" height="3" rx="1.5"/></clipPath>'
+         '<linearGradient id="sweep" gradientUnits="userSpaceOnUse" x1="-60" y1="0" x2="0" y2="0">'
+         '<stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>'
+         '<animateTransform attributeName="gradientTransform" type="translate" values="0 0;0 0;320 0;320 0" keyTimes="0;0.02;0.3;1" begin="1s" dur="6s" repeatCount="indefinite"/></linearGradient>'
          '<linearGradient id="glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0.25" stop-color="#ffffff" stop-opacity="0"/>'
          '<stop offset="0.5" stop-color="#ffffff" stop-opacity="1"/><stop offset="0.75" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs>',
          f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="14" fill="{t["panel"]}" stroke="{t["line"]}"/>',
          '<rect x="24" y="0.5" width="48" height="3" rx="1.5" fill="url(#ac)"/>'
          '<rect x="24" y="0.5" width="18" height="3" fill="url(#shine)" opacity="0.8" clip-path="url(#tb)">'
-         '<animate attributeName="x" values="12;72;12" dur="5s" repeatCount="indefinite"/></rect>',
+         '<animate attributeName="x" values="12;72;72" keyTimes="0;0.5;1" dur="5s" repeatCount="indefinite"/></rect>',
          f'<text x="24" y="34" class="m" font-size="10" fill="{SKY}" letter-spacing="1.6">{pr["num"]} // PROJECT</text>']
     st = pr["status"]
     scol = "#22c55e" if st == "LIVE" else "#f59e0b"
@@ -593,6 +599,10 @@ def project_card(t, pr, items, rows):
                  f'<image href="data:image/png;base64,{ic}" xlink:href="data:image/png;base64,{ic}" x="30" y="64" width="36" height="36"/>')
     else:
         o.append(f'<image href="data:image/png;base64,{ic}" xlink:href="data:image/png;base64,{ic}" x="24" y="58" width="48" height="48" clip-path="url(#ir)"/>')
+    # first half of each 6 s round: a light glides over the icon and the name, then over the logos below
+    o.append(f'<rect x="24" y="58" width="48" height="48" rx="11" fill="url(#glare)" opacity="0">'
+             f'<animate attributeName="opacity" values="0;0;{t["wave"]};0;0" keyTimes="0;0.02;0.08;0.16;1" begin="1s" dur="6s" repeatCount="indefinite"/></rect>')
+    o.append(f'<text x="86" y="79" class="s" font-size="18" fill="url(#sweep)">{esc(pr["name"])}</text>')
     o.append(f'<text x="86" y="79" class="s" font-size="18" fill="{t["fg"]}">{esc(pr["name"])}</text>'
              f'<text x="86" y="98" class="i" font-size="12" fill="{t["sub"]}">{esc(pr["tagline"])}</text>')
     y = 140
@@ -604,7 +614,7 @@ def project_card(t, pr, items, rows):
     for i, (label, lg) in enumerate(items):
         r, c = divmod(i, 9)
         x, yy = 24 + c * 30.5, 244 + r * 30
-        wa = (c + r * 2) / 12 * 0.7
+        wa = 0.45 + (c + r * 2) / 12 * 0.4
         o.append(f'<rect x="{x:.1f}" y="{yy}" width="26" height="26" rx="6" fill="{t["tile"]}" stroke="{t["line"]}"/>'
                  f'<image href="{lg}" x="{x+4:.1f}" y="{yy+4}" width="18" height="18"/>'
                  f'<rect x="{x:.1f}" y="{yy}" width="26" height="26" rx="6" fill="url(#glare)" opacity="0">'
