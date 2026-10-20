@@ -1,0 +1,33 @@
+[
+  {
+    "slug": "alphastock",
+    "name": "AlphaStock",
+    "tagline": "AI-driven stock screening",
+    "points": ["Ranks every stock with own ML models", "SEC filings and insider trades as data", "Backtested strategies, risk alerts"],
+    "status": "LIVE",
+    "icon": "assets/icons/alphastock.png",
+    "icon_tile": "#ffffff",
+    "url": "https://alpha-stock.com",
+    "sources": [{"org": "Alpha-Stock"}]
+  },
+  {
+    "slug": "mijn-uren",
+    "name": "Mijn Uren",
+    "tagline": "Time tracking, the Apple way",
+    "points": ["Timer, breaks, surcharges, overtime", "Reports and invoices as PDF and Excel", "Offline first, Siri and calendar sync"],
+    "status": "LIVE",
+    "icon": "assets/icons/mijn-uren.png",
+    "url": null,
+    "sources": [{"repo": "RafvanHooijdonk/Apps", "paths": ["apps/mijn-uren/", "backend/", ".github/", "package.json"]}]
+  },
+  {
+    "slug": "platecollector",
+    "name": "PlateCollector",
+    "tagline": "Spot and collect license plates",
+    "points": ["Knows country and region per plate", "Colour in the map, region by region", "Trips, stats and friends, offline"],
+    "status": "LIVE",
+    "icon": "assets/icons/platecollector.png",
+    "url": null,
+    "sources": [{"repo": "RafvanHooijdonk/Apps", "paths": ["apps/platecollector/", "backend/", ".github/", "package.json"]}]
+  }
+]

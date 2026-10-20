@@ -271,26 +271,31 @@ def npm_tokens(dep):
         return [scope, pkg]
     return [dep]
 
-found = {}
-test_files = 0
 TEST_FILE = re.compile(r"(\.(test|spec)\.[cm]?[jt]sx?$)|(^|/)test_[^/]+\.py$|(^|/)[^/]+_test\.py$|tests?\.cs$|(^|/)cypress/e2e/")
-for owner, name, branch in repo_refs:
-    hits = set()
+REPOS = {}  # (owner, name) -> (paths, {manifest path: text}), read once and reused for the project cards
+
+def read_repo(owner, name, branch):
     try:
         tree = rest(f"/repos/{owner}/{name}/git/trees/{urllib.parse.quote(branch)}?recursive=1")["tree"]
     except (urllib.error.HTTPError, KeyError):
-        continue
+        return None
     paths = [e["path"] for e in tree if e["type"] == "blob" and "node_modules/" not in e["path"]]
-    test_files += sum(1 for p in paths if TEST_FILE.search(p.lower()))
+    manifests = [p for p in paths if p.rsplit("/", 1)[-1].lower() in ("package.json", "requirements.txt", "pyproject.toml") or p.lower().endswith(".csproj")]
+    texts = {}
+    for p in manifests[:50]:
+        try:
+            texts[p] = rest(f"/repos/{owner}/{name}/contents/{urllib.parse.quote(p)}?ref={urllib.parse.quote(branch)}", raw=True)
+        except urllib.error.HTTPError:
+            pass
+    return paths, texts
+
+def detect(paths, texts):
+    """Catalogue names of the tools that these files show."""
+    hits = set()
     for p in paths:
         lp = p.lower()
         hits |= {k for test, k in PATH_RULES if test(lp)}
-    manifests = [p for p in paths if p.rsplit("/", 1)[-1].lower() in ("package.json", "requirements.txt", "pyproject.toml") or p.lower().endswith(".csproj")]
-    for p in manifests[:50]:
-        try:
-            text = rest(f"/repos/{owner}/{name}/contents/{urllib.parse.quote(p)}?ref={urllib.parse.quote(branch)}", raw=True)
-        except urllib.error.HTTPError:
-            continue
+    for p, text in texts.items():
         low = p.lower()
         tokens = []
         if low.endswith("package.json"):
@@ -313,7 +318,18 @@ for owner, name, branch in repo_refs:
                 if first not in ("microsoft", "system"):
                     tokens.append(first)
         hits |= {m for m in map(match, tokens) if m}
-    for h in {CANON.get(h, h) for h in hits}:
+    return {CANON.get(h, h) for h in hits}
+
+found = {}
+test_files = 0
+for owner, name, branch in repo_refs:
+    data = read_repo(owner, name, branch)
+    if not data:
+        continue
+    REPOS[(owner, name)] = data
+    paths, texts = data
+    test_files += sum(1 for p in paths if TEST_FILE.search(p.lower()))
+    for h in detect(paths, texts):
         found[h] = found.get(h, 0) + 1
 
 GROUPS = ["Testing", "DevOps", "Frameworks", "Data & AI"]
@@ -409,6 +425,97 @@ def stack_card(t, items):
     return "\n".join(o)
 
 STACK = stack_items()
+
+# ---------- project cards: everything a project uses, as logos ----------
+EXT_LANG = {".ts": "TypeScript", ".tsx": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript",
+            ".py": "Python", ".cs": "C#", ".java": "Java", ".html": "HTML", ".css": "CSS", ".scss": "SCSS",
+            ".go": "Go", ".rs": "Rust", ".php": "PHP", ".kt": "Kotlin", ".swift": "Swift", ".dart": "Dart", ".vue": "Vue"}
+_lang_logo = {}
+def lang_logo(n):
+    if n not in _lang_logo:
+        _lang_logo[n] = logo(n)
+    return _lang_logo[n]
+
+def project_logos(project):
+    langs, hits = set(), set()
+    for src in project["sources"]:
+        if "org" in src:
+            keys = [k for k in REPOS if k[0] == src["org"]]
+            prefixes = None
+        else:
+            keys = [tuple(src["repo"].split("/", 1))]
+            prefixes = tuple(src["paths"])
+        for key in keys:
+            if key not in REPOS:
+                continue
+            paths, texts = REPOS[key]
+            if prefixes:
+                paths = [p for p in paths if p.startswith(prefixes)]
+                texts = {p: t for p, t in texts.items() if p.startswith(prefixes)}
+            hits |= detect(paths, texts)
+            for p in paths:
+                ext = os.path.splitext(p)[1].lower()
+                if ext in EXT_LANG and "/public/" not in "/" + p:
+                    langs.add(EXT_LANG[ext])
+    out = []
+    for n in sorted(langs, key=lambda n: [x for x, _, _ in parts].index(n) if n in [x for x, _, _ in parts] else 99):
+        if lang_logo(n):
+            out.append((n, lang_logo(n)))
+    order = {g: i for i, g in enumerate(["Frameworks", "Data & AI", "Testing", "DevOps"])}
+    for k in sorted(hits, key=lambda k: (order[info(k)[1]], -found.get(k, 0), info(k)[0].lower())):
+        label, _, folder, variant = info(k)
+        lg = tool_logo(folder, variant)
+        if lg:
+            out.append((label, lg))
+    return out
+
+def project_card(t, pr, items, rows):
+    W = 320
+    H = 244 + rows * 30 + 14
+    ic = base64.b64encode(open(os.path.join(ROOT, pr["icon"]), "rb").read()).decode()
+    esc = lambda x: x.replace("&", "&amp;").replace("<", "&lt;")
+    o = [f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
+         '<defs><clipPath id="ir"><rect x="24" y="58" width="48" height="48" rx="11"/></clipPath>'
+         f'<linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
+         '<linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.5" stop-color="#fff" stop-opacity="0.9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+         '<clipPath id="tb"><rect x="24" y="0.5" width="48" height="3" rx="1.5"/></clipPath></defs>',
+         f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="14" fill="{t["panel"]}" stroke="{t["line"]}"/>',
+         '<rect x="24" y="0.5" width="48" height="3" rx="1.5" fill="url(#ac)"/>'
+         '<rect x="24" y="0.5" width="18" height="3" fill="url(#shine)" opacity="0.8" clip-path="url(#tb)">'
+         '<animate attributeName="x" values="12;72;12" dur="5s" repeatCount="indefinite"/></rect>',
+         f'<text x="24" y="34" class="m" font-size="10" fill="{SKY}" letter-spacing="1.6">{pr["num"]} // PROJECT</text>']
+    st = pr["status"]
+    scol = "#22c55e" if st == "LIVE" else "#f59e0b"
+    sw = len(st) * 6.4 + 26
+    o.append(f'<g transform="translate({W-24-sw:.0f},20)"><rect width="{sw:.0f}" height="20" rx="10" fill="{scol}" fill-opacity="0.1" stroke="{scol}" stroke-opacity="0.4"/>'
+             f'<circle cx="11" cy="10" r="3.2" fill="{scol}"/><text x="20" y="13.8" class="m" font-size="9.5" fill="{scol}" letter-spacing="0.7">{esc(st)}</text></g>')
+    if pr.get("icon_tile"):
+        o.append(f'<rect x="24" y="58" width="48" height="48" rx="11" fill="{pr["icon_tile"]}" stroke="{t["line"]}"/>'
+                 f'<image href="data:image/png;base64,{ic}" xlink:href="data:image/png;base64,{ic}" x="30" y="64" width="36" height="36"/>')
+    else:
+        o.append(f'<image href="data:image/png;base64,{ic}" xlink:href="data:image/png;base64,{ic}" x="24" y="58" width="48" height="48" clip-path="url(#ir)"/>')
+    o.append(f'<text x="86" y="79" class="s" font-size="18" fill="{t["fg"]}">{esc(pr["name"])}</text>'
+             f'<text x="86" y="98" class="i" font-size="12" fill="{t["sub"]}">{esc(pr["tagline"])}</text>')
+    y = 140
+    for ln in pr["points"]:
+        o.append(f'<rect x="24" y="{y-7}" width="5" height="5" rx="1" fill="url(#ac)"/><text x="37" y="{y}" class="i" font-size="12.5" fill="{t["sub"]}">{esc(ln)}</text>')
+        y += 24
+    o.append(f'<line x1="24" y1="208" x2="{W-24}" y2="208" stroke="{t["line"]}"/>'
+             f'<text x="24" y="233" class="m" font-size="9.5" fill="{t["mute"]}" letter-spacing="1.6">BUILT WITH</text>')
+    for i, (label, lg) in enumerate(items):
+        r, c = divmod(i, 9)
+        x, yy = 24 + c * 30.5, 244 + r * 30
+        o.append(f'<rect x="{x:.1f}" y="{yy}" width="26" height="26" rx="6" fill="{t["tile"]}" stroke="{t["line"]}"/>'
+                 f'<image href="{lg}" x="{x+4:.1f}" y="{yy+4}" width="18" height="18"/>')
+    o.append('</svg>')
+    return "\n".join(o)
+
+with open(os.path.join(ROOT, "scripts", "projects.json")) as f:
+    PROJECTS = json.load(f)
+for i, pr in enumerate(PROJECTS, 1):
+    pr["num"] = f"{i:02d}"
+    pr["items"] = project_logos(pr)
+CARD_ROWS = max((len(pr["items"]) + 8) // 9 for pr in PROJECTS)
 for name, t in THEMES.items():
     with open(os.path.join(ROOT, "assets", f"stats-{name}.svg"), "w") as f:
         f.write(card(t))
@@ -416,6 +523,9 @@ for name, t in THEMES.items():
         f.write(tools_card(t))
     with open(os.path.join(ROOT, "assets", f"stack-{name}.svg"), "w") as f:
         f.write(stack_card(t, STACK))
+    for pr in PROJECTS:
+        with open(os.path.join(ROOT, "assets", f"card-{pr['slug']}-{name}.svg"), "w") as f:
+            f.write(project_card(t, pr, pr["items"], CARD_ROWS))
 # Details page behind the cards: full lists, since an image in a README cannot show tooltips.
 import datetime
 md = ["# Languages and tooling", "",
@@ -431,6 +541,8 @@ for g in GROUPS:
 md += ["[Back to profile](./README.md)", ""]
 with open(os.path.join(ROOT, "STATS.md"), "w") as f:
     f.write("\n".join(md))
+for pr in PROJECTS:
+    print(f"{pr['name']}:", ", ".join(l for l, _ in pr["items"]))
 print("stack:", ", ".join(l for l, _ in STACK))
 print("test files:", test_files)
 for g in GROUPS:
