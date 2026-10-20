@@ -8,7 +8,7 @@ Updated 20 October 2026. Counted over my own repositories and Alpha-Stock, forks
 | --- | --- |
 | TypeScript | 45.3% |
 | JavaScript | 25.9% |
-| Python | 11.4% |
+| Python | 11.5% |
 | HTML | 8.7% |
 | CSS | 6.4% |
 | C# | 1.5% |
