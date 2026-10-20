@@ -397,6 +397,14 @@ def brand(folder, fallback=SKY):
     c = (e or {}).get("color") or fallback
     return c if c.startswith("#") and len(c) in (4, 7) else fallback
 
+def text_logo(name, color):
+    """A simple logo for a language the icon set does not have: its name in its own colour."""
+    short = name if len(name) <= 4 else name[:3]
+    svg = (f"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='{color}'/>"
+           f"<text x='16' y='21' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='700' "
+           f"font-size='{12 if len(short) > 3 else 13}' fill='#ffffff'>{short}</text></svg>")
+    return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
+
 def stack_items():
     """{group: [(label, logo, metric text, usage 0..1, brand colour)]}"""
     groups = {g: [] for g in STACK_GROUPS}
@@ -406,7 +414,7 @@ def stack_items():
         f = size / total
         if f < 0.001:
             continue
-        lg = logos.get(n) or logo(n)
+        lg = logos.get(n) or logo(n) or text_logo(n, colors.get(n) or "#64748b")
         if lg:
             groups["Languages"].append((n, lg, f"{f * 100:.0f}%", f / top_share, colors.get(n, SKY)))
             seen.add(n)
