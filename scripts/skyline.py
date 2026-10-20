@@ -213,7 +213,10 @@ def svg(th):
                     f'<animate attributeName="opacity" {flag_vis(flag_no[date])} begin="{start:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/></polygon>'
                     if date in flag_no else '')
                  + '</g></g></g>')
-    # spotlight label: month and its total, top left
+    # month label: month and its total, top left; starts together with the stat block
+    INTRO = 0.2                                    # both fade in from here
+    label_start = INTRO
+    o.append(f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{INTRO}s" dur="0.5s" fill="freeze"/>')
     for i, key in enumerate(months):
         total = sum(c[2] for c in cells if c[4][:7] == key)
         name = datetime.date.fromisoformat(key + "-01").strftime("%B %Y")
@@ -229,12 +232,13 @@ def svg(th):
             vis = (f'values="0;1;0" keyTimes="0;{s_on:.5f};{s_off:.5f}"' if s_off < 0.99999
                    else f'values="0;1;1" keyTimes="0;{s_on:.5f};1"')
             counter.append(f'<text x="40" y="74" class="s" font-size="24" fill="{th["fg"]}" opacity="0">{v:,}'
-                           f'<animate attributeName="opacity" calcMode="discrete" {vis} begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/></text>')
+                           f'<animate attributeName="opacity" calcMode="discrete" {vis} begin="{label_start:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/></text>')
         word_x = 40 + len(f"{total:,}") * 14.6 + 6
-        o.append(f'<g opacity="0"><animate attributeName="opacity" {spot_vis(i, 0, 1)} begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/>'
+        o.append(f'<g opacity="0"><animate attributeName="opacity" {spot_vis(i, 0, 1)} begin="{label_start:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/>'
                  f'<text x="40" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">{name.upper()}</text>'
                  + "".join(counter)
                  + f'<text x="{word_x:.1f}" y="74" class="i" font-size="13" fill="{th["sub"]}">contributions</text></g>')
+    o.append('</g>')
     # flag: jumps between the days, every day with contributions gets it once per round.
     # The pole grows where bars in front would hide the label, so every label stays readable.
     if tops:
@@ -274,6 +278,7 @@ def svg(th):
                      f'<text x="{bx + bw / 2:.1f}" y="{by + 14.5:.1f}" text-anchor="middle" class="m" font-size="11.5" fill="{ink}">{label}</text></g>')
     # stat block, top right, numbers counting up
     px, py = 640, 40
+    o.append(f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{INTRO}s" dur="0.5s" fill="freeze"/>')
     o.append(f'<text x="{px}" y="{py}" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LAST 12 MONTHS</text>')
     for i, (label, value) in enumerate(STATS):
         cx, cy = px + (i % 2) * 165, py + 46 + (i // 2) * 70
@@ -288,6 +293,7 @@ def svg(th):
             col = th["fg"]
             o.append(f'<text x="{cx}" y="{cy}" class="s" font-size="30" fill="{col}" opacity="{1 if k == 0 else 0}">{v:,}{anims}</text>')
         o.append(f'<text x="{cx}" y="{cy + 21}" class="i" font-size="12.5" fill="{th["sub"]}">{label}</text>')
+    o.append('</g>')
     # legend, bottom left
     lx, ly = 40, 500
     o.append(f'<text x="{lx}" y="{ly}" class="i" font-size="13" fill="{th["fg"]}">Contributions per day</text>')
