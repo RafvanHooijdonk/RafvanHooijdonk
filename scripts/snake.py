@@ -5,7 +5,7 @@ Plain SMIL animation, so it plays inside an <img> on GitHub.
 
 - The route never crosses the body: each step knows where the body will still be.
 - Head with eyes and a flicking tongue, bites shrink the day, the busiest days spark.
-- Month and weekday labels, a live counter, and at the end the snake coils up and
+- Eats the lightest days first and the violet ones last. Month and weekday labels, a live counter, and at the end the snake coils up and
   shows the year's total before the round starts over.
 """
 import base64, datetime, json, os, sys, urllib.request
@@ -16,8 +16,8 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else "dist"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CELL, DOT, RADIUS = 16, 12, 4
-START_LEN, MAX_LEN = 4, 24
-STEP = 0.09            # seconds per grid step
+START_LEN = 4  # grows one segment with every day eaten, no cap
+STEP = 0.07            # seconds per grid step
 HOLD = 2.6             # seconds the coiled snake and the total stay on screen
 FADE = 0.6             # seconds to fade out before the round restarts
 THEMES = {
@@ -101,10 +101,12 @@ def free_area(c, t):
     return len(seen)
 
 targets = {c for c, lv in grid.items() if lv > 0}
+MAX_LEN = START_LEN + len(targets)
 guard = 0
 while targets and guard < 5000:
     guard += 1
-    path = plan(targets)
+    level = min(grid[c] for c in targets)  # lightest days first, the violet ones last
+    path = plan({c for c in targets if grid[c] == level})
     if path is None:  # boxed in: step to the side with the most room and try again
         t = len(route) - 1
         options = [n for n in neighbours(route[-1]) if not blocked(t, n, 1)]
@@ -114,7 +116,7 @@ while targets and guard < 5000:
         continue
     for c in path:
         route.append(c)
-        if c in targets:
+        if c in targets and grid[c] == level:
             targets.discard(c)
             eaten_at[c] = len(route) - 1
             bites.append(len(route) - 1)
@@ -125,7 +127,7 @@ DIRS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 def heading(a, b):
     return DIRS.index((b[0] - a[0], b[1] - a[1])) if a != b else 0
 h = heading(route[-2], route[-1]) if len(route) > 1 else 0
-for _ in range(MAX_LEN + 10):
+for _ in range(40):
     t = len(route) - 1
     moved = False
     for turn in (1, 0, 3):  # right, straight, left
@@ -150,9 +152,8 @@ fade_start, hold_start = N - 1 - round(FADE / STEP), R - 1
 
 # safety check: no two segments in one cell at any frame
 for f in range(R):
-    cells = body(f)
-    visible = cells[:length_at(f)]
-    if f > MAX_LEN and len(set(visible)) != len(visible):
+    visible = [route[f - i] for i in range(length_at(f)) if f - i >= 0]  # stacked start cells excluded
+    if len(set(visible)) != len(visible):
         sys.exit(f"route crosses itself at step {f}")
 
 # ---------------- drawing ----------------
@@ -180,7 +181,7 @@ def svg(theme):
         if (x == 0 or first.month != prev_month) and x - last_x >= 3:
             o.append(f'<text x="{x * CELL + 2}" y="-24" class="m">{first.strftime("%b")}</text>')
             last_x = x
-    for row, name in ((1, "Mon"), (3, "Wed"), (5, "Fri")):
+    for row, name in enumerate(("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")):
         o.append(f'<text x="-22" y="{row * CELL + 11}" class="m" text-anchor="end">{name}</text>')
     # days: an empty dot below, the coloured one on top shrinks away when eaten
     off = (CELL - DOT) / 2
@@ -228,16 +229,21 @@ def svg(theme):
                  f'<animate attributeName="opacity" calcMode="discrete" {vis} dur="{DUR}s" repeatCount="indefinite"/></text>')
     # snake: tail first so the head is drawn on top
     o.append(f'<g>' + anim("opacity", "1;1;0;0", f' keyTimes="0;{kt(fade_start)};{kt(N - 2)};1"'))
+    # positions in whole cells inside a scale(16) group keeps the file small
+    o.append(f'<g transform="scale({CELL})">')
     for i in reversed(range(1, MAX_LEN)):
-        size = max(6, 12 - i * 0.28)
-        o2 = (CELL - size) / 2
-        xs = ";".join(str(route[max(0, tau - i)][0] * CELL + o2) for tau in taus)
-        ys = ";".join(str(route[max(0, tau - i)][1] * CELL + o2) for tau in taus)
+        size = max(6, 12 - i * 0.12)
+        o2 = (CELL - size) / 2 / CELL
+        xs = ";".join(str(route[max(0, tau - i)][0]) for tau in taus)
+        ys = ";".join(str(route[max(0, tau - i)][1]) for tau in taus)
         appear = next((f for f in range(R) if length_at(f) > i), R - 1)
         vis = (f'<animate attributeName="opacity" calcMode="discrete" values="0;1;1" keyTimes="0;{kt(appear)};1" '
                f'dur="{DUR}s" repeatCount="indefinite"/>') if i >= START_LEN else ""
-        o.append(f'<rect width="{size:.1f}" height="{size:.1f}" rx="{size / 2.4:.1f}" fill="{mix(th["head"], th["tail"], i / MAX_LEN)}" '
-                 f'opacity="{1 if i < START_LEN else 0}">' + anim("x", xs) + anim("y", ys) + vis + '</rect>')
+        sz = size / CELL
+        o.append(f'<g transform="translate({o2:.3f} {o2:.3f})"><rect width="{sz:.3f}" height="{sz:.3f}" rx="{sz / 2.4:.3f}" '
+                 f'fill="{mix(th["head"], th["tail"], i / MAX_LEN)}" opacity="{1 if i < START_LEN else 0}">'
+                 + anim("x", xs) + anim("y", ys) + vis + '</rect></g>')
+    o.append('</g>')
     # head: moves, turns with the direction, eyes and a flicking tongue
     centers = ";".join(f"{route[tau][0] * CELL + CELL / 2} {route[tau][1] * CELL + CELL / 2}" for tau in taus)
     angles = []
