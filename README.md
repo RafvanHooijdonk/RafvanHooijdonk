@@ -36,7 +36,10 @@
 
 ### `03 // Activity`
 
-<img src="./profile-3d-contrib/profile-rvh.svg" width="100%" alt="3D contribution graph" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/skyline-dark.svg" />
+  <img src="./assets/skyline-light.svg" width="100%" alt="Contribution skyline of the last 12 months" />
+</picture>
 
 <a href="./STATS.md">
 <picture>

@@ -20,11 +20,17 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
         run: python scripts/stats_card.py
+      - name: Build skyline
+        env:
+          GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
+        run: |
+          for d in 0.0 0.5 1.0; do SKYLINE_TEST_DENSITY=$d python scripts/skyline.py; done
+          python scripts/skyline.py
       - name: Commit & push
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add assets/stats-*.svg assets/tools-*.svg assets/stack-*.svg assets/card-*.svg STATS.md
+          git add assets/stats-*.svg assets/tools-*.svg assets/stack-*.svg assets/card-*.svg assets/skyline-*.svg STATS.md
           if git commit -m "Update stats and tooling cards"; then
             git pull --rebase && git push
           fi
