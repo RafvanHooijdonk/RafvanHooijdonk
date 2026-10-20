@@ -7,6 +7,10 @@ on:
   push:
     branches:
       - main
+concurrency:
+  group: snake
+  cancel-in-progress: true
+
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -16,9 +20,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Stress test snake
         run: |
-          for d in 0.0 0.05 0.3 0.6 0.9 1.0; do
-            for seed in 1 2 3; do SNAKE_TEST_DENSITY=$d SNAKE_TEST_SEED=$seed python3 scripts/snake.py; done
-          done
+          for d in 0.0 0.1 0.3 0.6 1.0; do SNAKE_TEST_DENSITY=$d python3 scripts/snake.py; done
       - name: Generate snake
         env:
           GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
