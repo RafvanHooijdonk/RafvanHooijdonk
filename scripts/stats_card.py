@@ -420,61 +420,41 @@ def stack_items():
     return {g: items for g, items in groups.items() if items}
 
 def stack_card(t, groups):
-    W, LABEL, SMALL, WIDE, GAP, TH, ROWGAP = 1000, 132, 72, 168, 8, 78, 22
-    x_start, x_end = 32 + LABEL, W - 32
-    # lay out: wide first tile, then small tiles, wrapping inside the group
-    placed, y = [], 8
-    for g, items in groups.items():
-        x, row_y = x_start, y
-        placed.append(("label", g, 32, y))
-        for i, it in enumerate(items):
-            w = WIDE if i == 0 else SMALL
-            if x + w > x_end:
-                x, row_y = x_start, row_y + TH + GAP
-            placed.append(("tile", it, x, row_y, w))
-            x += w + GAP
-        y = row_y + TH + ROWGAP
-    H = y - ROWGAP + 8
-    tiles = [p for p in placed if p[0] == "tile"]
-    spot, per = len(tiles), 1.3
-    loop = spot * per
+    """One grid of equal tiles, as before: tiles pop in one by one, then one tile at a time
+    lifts and glows in the colour of its own logo."""
+    items = [it for g in STACK_GROUPS for it in groups.get(g, [])]
+    per_row, cell, TILE = 12, 78, 52
+    rows = (len(items) + per_row - 1) // per_row
+    W, H = 1000, rows * 88 + 14
+    x0 = (W - per_row * cell) / 2 + (cell - TILE) / 2
+    loop = len(items) * 1.2
+    intro_end = 0.3 + len(items) * 0.035 + 0.5
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
-         f'<defs><linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
-         '<filter id="gl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter></defs>']
+         '<defs><filter id="gl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6"/></filter></defs>']
     esc = lambda s: s.replace("&", "&amp;")
-    k = 0
-    for p in placed:
-        if p[0] == "label":
-            _, g, x, yy = p
-            o.append(f'<text x="{x}" y="{yy + 22}" class="m" font-size="10.5" fill="{SKY}" letter-spacing="1.6">{esc(g.upper())}</text>')
-            continue
-        _, (label, lg, metric, use, col), x, yy, w = p
-        a0, b0, e = k / spot, (k + 1) / spot, 0.35 / loop
-        vis = (f'values="0;0;1;1;0;0" keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"' if k else
-               f'values="1;1;0;0;1" keyTimes="0;{b0 - e:.5f};{b0:.5f};{1 - e:.5f};1"')
-        k += 1
-        # light spot in the logo's own colour
-        o.append(f'<g opacity="0"><animate attributeName="opacity" {vis} begin="1s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
-                 f'<rect x="{x - 2}" y="{yy - 2}" width="{w + 4}" height="{TH + 4}" rx="14" fill="{col}" opacity="0.35" filter="url(#gl)"/>'
-                 f'<rect x="{x}" y="{yy}" width="{w}" height="{TH}" rx="12" fill="{col}" fill-opacity="0.10" stroke="{col}" stroke-width="1.4"/></g>')
-        o.append(f'<rect x="{x}" y="{yy}" width="{w}" height="{TH}" rx="12" fill="{t["btile"]}" fill-opacity="0.8" stroke="{t["line"]}"/>')
-        bar_w = (w - 24) * max(0.04, use) if metric else 0
-        if w == WIDE:
-            if t["plate"]:  # dark mode: a light plate keeps dark logos visible
-                o.append(f'<rect x="{x + 10}" y="{yy + 12}" width="42" height="42" rx="9" fill="{t["plate"]}"/>')
-            o.append(f'<image href="{lg}" x="{x + 14}" y="{yy + 16}" width="34" height="34"/>'
-                     f'<text x="{x + 58}" y="{yy + 30}" class="s" font-size="14" fill="{t["fg"]}">{esc(label)}</text>'
-                     f'<text x="{x + 58}" y="{yy + 47}" class="m" font-size="10.5" fill="{t["sub"]}">{esc(metric)}</text>')
-        else:
-            if t["plate"]:
-                o.append(f'<rect x="{x + (w - 32) / 2:.1f}" y="{yy + 8}" width="32" height="32" rx="7" fill="{t["plate"]}"/>')
-            o.append(f'<image href="{lg}" x="{x + (w - 24) / 2:.1f}" y="{yy + 12}" width="24" height="24"/>'
-                     f'<text x="{x + w / 2:.1f}" y="{yy + 52}" text-anchor="middle" class="i" font-size="10" fill="{t["fg"]}">{esc(label)}</text>')
-        if metric:
-            o.append(f'<rect x="{x + 12}" y="{yy + TH - 8}" width="{w - 24}" height="3" rx="1.5" fill="{t["line"]}"/>'
-                     f'<rect x="{x + 12}" y="{yy + TH - 8}" width="{bar_w:.1f}" height="3" rx="1.5" fill="url(#ac)"/>')
-            if w != WIDE:
-                o.append(f'<text x="{x + w / 2:.1f}" y="{yy + 63}" text-anchor="middle" class="m" font-size="8.5" fill="{t["mute"]}">{esc(metric)}</text>')
+    for i, (label, lg, metric, use, col) in enumerate(items):
+        r, c = divmod(i, per_row)
+        x, y = x0 + c * cell, 8 + r * 88
+        cx, cy = x + TILE / 2, y + TILE / 2
+        a0, b0, e = i / len(items), (i + 1) / len(items), 0.3 / loop
+        vis = (f'keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"' if i else
+               f'keyTimes="0;{e:.5f};{b0 - e:.5f};{b0:.5f};{1 - e:.5f};1"')
+        on, off = ("0;0;1;1;0;0", "0;0;-4;-4;0;0") if i else ("0;1;1;0;0;0", "0;-4;-4;0;0;0")
+        pop = 0.3 + i * 0.035
+        o.append(f'<g transform="translate({cx:.1f} {cy:.1f})"><g transform="scale(0)">'
+                 f'<animateTransform attributeName="transform" type="scale" values="0;1.12;1" keyTimes="0;0.65;1" begin="{pop:.3f}s" dur="0.45s" fill="freeze"/>'
+                 f'<g transform="translate({-cx:.1f} {-cy:.1f})">'
+                 # the lift and glow while this tile is in the spotlight
+                 f'<g><animateTransform attributeName="transform" type="translate" values="{";".join("0 " + v for v in off.split(";"))}" {vis} '
+                 f'begin="{intro_end:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
+                 f'<rect x="{x - 2}" y="{y - 2}" width="{TILE + 4}" height="{TILE + 4}" rx="14" fill="{col}" opacity="0" filter="url(#gl)">'
+                 f'<animate attributeName="opacity" values="{on.replace("1", "0.55")}" {vis} begin="{intro_end:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/></rect>'
+                 f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="12" fill="{t["tile"]}" stroke="{t["line"]}"/>'
+                 f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="12" fill="none" stroke="{col}" stroke-width="1.6" opacity="0">'
+                 f'<animate attributeName="opacity" values="{on}" {vis} begin="{intro_end:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/></rect>'
+                 f'<image href="{lg}" x="{x + 11}" y="{y + 11}" width="30" height="30"/></g>'
+                 f'<text x="{cx:.1f}" y="{y + 70}" text-anchor="middle" class="m" font-size="10" fill="{t["sub"]}">{esc(label)}</text>'
+                 '</g></g></g>')
     o.append('</svg>')
     return "\n".join(o)
 
