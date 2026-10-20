@@ -164,6 +164,22 @@ def svg(th):
         if i == 0:
             return f'values="{hi};{hi};{lo};{lo};{hi}" keyTimes="0;{b - e:.5f};{b:.5f};{1 - e:.5f};1"'
         return f'values="{lo};{lo};{hi};{hi};{lo};{lo}" keyTimes="0;{a:.5f};{a + e:.5f};{b - e:.5f};{b:.5f};1"'
+    # flag timing, shared by the flag and the top of its bar: random order, every day once
+    # per round, reshuffled with each daily build
+    tops = [c for c in sorted(cells, key=lambda c: c[4]) if c[2] > 0]
+    import random
+    random.Random(datetime.date.today().toordinal()).shuffle(tops)
+    k, slot, fade = max(1, len(tops)), 1.5, 0.4    # seconds per day, seconds to fade in and out
+    loop = k * slot
+    start = end_bars + 0.4
+    flag_no = {c[4]: i for i, c in enumerate(tops)}
+    def flag_vis(i):
+        a0, b0, e = i / k, (i + 1) / k, fade / loop
+        if k == 1:
+            return 'values="1;1" keyTimes="0;1"'
+        if i == 0:
+            return f'values="1;1;0;0;1" keyTimes="0;{b0 - e:.5f};{b0:.5f};{1 - e:.5f};1"'
+        return f'values="0;0;1;1;0;0" keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"'
     for x, y, n, lv, date in cells:                # floor: one fine tile per day
         f0, f1, f2, f3 = proj(x, y), proj(x + 1, y), proj(x + 1, y + 1), proj(x, y + 1)
         o.append(f'<polygon points="{pts(f0, f1, f2, f3)}" fill="{th["floor"]}" stroke="{th["page"]}" stroke-width="1"/>')
@@ -193,6 +209,9 @@ def svg(th):
                  f'<polygon points="{pts(p3, p2, t2, t3)}" fill="url(#sl{lv})"/>'
                  f'<polygon points="{pts(p1, p2, t2, t1)}" fill="url(#sr{lv})"/>'
                  f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{top}" stroke="#ffffff" stroke-opacity="{th["edge"]}" stroke-width="0.8" stroke-linejoin="round"/>{haze}'
+                 + (f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{th["fg"]}" opacity="0">'
+                    f'<animate attributeName="opacity" {flag_vis(flag_no[date])} begin="{start:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/></polygon>'
+                    if date in flag_no else '')
                  + '</g></g></g>')
     # spotlight label: month and its total, top left
     for i, key in enumerate(months):
@@ -203,14 +222,7 @@ def svg(th):
                  f'<text x="40" y="74" class="s" font-size="24" fill="{th["fg"]}">{total:,}<tspan class="i" font-size="13" fill="{th["sub"]}"> contributions</tspan></text></g>')
     # flag: jumps between the days, every day with contributions gets it once per round.
     # The pole grows where bars in front would hide the label, so every label stays readable.
-    # random order, every day still once per round; reshuffled with each daily build
-    tops = [c for c in sorted(cells, key=lambda c: c[4]) if c[2] > 0]
-    import random
-    random.Random(datetime.date.today().toordinal()).shuffle(tops)
     if tops:
-        k, slot, fade = len(tops), 1.5, 0.4   # seconds per day, seconds to fade in and out
-        loop = k * slot
-        start = end_bars + 0.4
         stat_box = (620, 0, 1000, 265)
         front = lambda c: [outline(d) for d in cells if d[2] > 0 and (d[0] + d[1], d[0]) > (c[0] + c[1], c[0])]
         for i, c in enumerate(tops):
@@ -234,13 +246,7 @@ def svg(th):
                     continue
                 break
             by = max(4, fy - pole - 20)
-            a0, b0, e = i / k, (i + 1) / k, fade / loop
-            if k == 1:
-                vis = 'values="1;1" keyTimes="0;1"'
-            elif i == 0:
-                vis = f'values="1;1;0;0;1" keyTimes="0;{b0 - e:.5f};{b0:.5f};{1 - e:.5f};1"'
-            else:
-                vis = f'values="0;0;1;1;0;0" keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"'
+            vis = flag_vis(i)
             # label in the colour of its bar, as a pill in the page colour
             ink = th["ink"][c[3]]
             o.append(f'<g opacity="0"><animate attributeName="opacity" {vis} begin="{start:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
