@@ -15,11 +15,11 @@ jobs:
     timeout-minutes: 350
     steps:
       - uses: actions/checkout@v5
-      - name: Update GitHub status every 10 minutes
+      - name: Update GitHub status every 15 minutes
         env:
           GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
         run: |
-          for i in $(seq 1 34); do
+          for i in $(seq 1 23); do
             python3 scripts/status.py || true
-            sleep $(( 600 - $(date +%s) % 600 + 5 ))
+            sleep $(( 900 - $(date +%s) % 900 + 5 ))
           done

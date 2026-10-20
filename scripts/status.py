@@ -69,7 +69,7 @@ if top and top["contributionCount"] > 0:
     options.append((":trophy:", f"Busiest day: {top['contributionCount']} contributions on {day.day} {day:%b %Y}"))
 options.append((":zap:", f"Active on {active_days} days in the last year"))
 
-slot = (now.hour * 60 + now.minute) // 10
+slot = (now.hour * 60 + now.minute) // 15
 emoji, message = options[slot % len(options)]
 stamp = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Amsterdam"))
 message = f"{message} | {stamp:%d/%m/%Y %H:%M}"
