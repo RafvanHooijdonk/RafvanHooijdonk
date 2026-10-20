@@ -11,12 +11,12 @@ Plain SMIL animation, so it plays inside an <img> on GitHub.
 import base64, datetime, json, os, sys, urllib.request
 from collections import deque
 
-TOKEN = os.environ["GH_TOKEN"]
+TOKEN = os.environ.get("GH_TOKEN", "")
 OUT = sys.argv[1] if len(sys.argv) > 1 else "dist"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CELL, DOT, RADIUS = 16, 12, 4
-START_LEN = 4  # grows one segment with every day eaten, no cap
+START_LEN = 1  # starts as just the head, grows one segment with every day eaten, no cap
 STEP = 0.07            # seconds per grid step
 HOLD = 2.6             # seconds the coiled snake and the total stay on screen
 FADE = 0.6             # seconds to fade out before the round restarts
@@ -31,12 +31,22 @@ THEMES = {
 LEVEL = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
 
 # ---------------- data ----------------
+# SNAKE_TEST_DENSITY=0.0..1.0 runs on a random year instead of real data (stress test, no files written)
+TEST_DENSITY = os.environ.get("SNAKE_TEST_DENSITY")
 QUERY = """{ viewer { contributionsCollection { contributionCalendar { totalContributions weeks {
   contributionDays { contributionLevel weekday date } } } } } }"""
-req = urllib.request.Request("https://api.github.com/graphql", data=json.dumps({"query": QUERY}).encode(),
-                             headers={"Authorization": f"bearer {TOKEN}", "Content-Type": "application/json"})
-with urllib.request.urlopen(req, timeout=30) as r:
-    cal = json.load(r)["data"]["viewer"]["contributionsCollection"]["contributionCalendar"]
+if TEST_DENSITY is None:
+    req = urllib.request.Request("https://api.github.com/graphql", data=json.dumps({"query": QUERY}).encode(),
+                                 headers={"Authorization": f"bearer {TOKEN}", "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        cal = json.load(r)["data"]["viewer"]["contributionsCollection"]["contributionCalendar"]
+else:
+    import random
+    random.seed(os.environ.get("SNAKE_TEST_SEED", "1"))
+    first = datetime.date(2025, 10, 19)
+    cal = {"totalContributions": 0, "weeks": [{"contributionDays": [
+        {"contributionLevel": random.choice(list(LEVEL)[1:]) if random.random() < float(TEST_DENSITY) else "NONE",
+         "weekday": d, "date": str(first + datetime.timedelta(days=7 * w + d))} for d in range(7)]} for w in range(53)]}
 weeks, TOTAL = cal["weeks"], cal["totalContributions"]
 grid = {}
 for x, w in enumerate(weeks):
@@ -45,81 +55,85 @@ for x, w in enumerate(weeks):
 W, H = len(weeks), 7
 
 # ---------------- route ----------------
+# The snake moves on the grid plus one lane around it, with one extra column on the right so a
+# closed tour exists. A fixed Hamiltonian cycle visits every cell exactly once; following it the
+# snake can never hit itself and always reaches every day. While that is safe it takes shortcuts
+# ahead on the cycle, but never past its own tail (the well known safe-shortcut strategy), so it
+# stays fast when short and stays correct even with every day of the year filled.
+X0, X1, Y0, Y1 = -1, W + 1, -1, H          # columns X0..X1 (even count), rows Y0..Y1
+
 def inside(c):
-    return -1 <= c[0] <= W and -1 <= c[1] <= H   # the grid plus one lane around it
+    return X0 <= c[0] <= X1 and Y0 <= c[1] <= Y1
 
 def neighbours(c):
     x, y = c
     return [n for n in ((x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1)) if inside(n)]
 
-route = [(-1, -1)]
-bites = []          # route index of every bite
+def build_cycle():
+    cols, rows = X1 - X0 + 1, Y1 - Y0 + 1
+    assert cols % 2 == 0
+    order = [(0, r) for r in range(rows)]                       # first column down
+    for c in range(1, cols):                                    # snake through rows 1..end
+        rng = range(rows - 1, 0, -1) if c % 2 else range(1, rows)
+        order += [(c, r) for r in rng]
+    order += [(c, 0) for c in range(cols - 1, 0, -1)]           # back along the top row
+    return [(X0 + c, Y0 + r) for c, r in order]
+
+CYCLE = build_cycle()
+AREA = len(CYCLE)
+IDX = {c: i for i, c in enumerate(CYCLE)}
+assert len(IDX) == AREA == (X1 - X0 + 1) * (Y1 - Y0 + 1)
+for i, c in enumerate(CYCLE):  # every step of the cycle is one grid step
+    n = CYCLE[(i + 1) % AREA]
+    assert abs(c[0] - n[0]) + abs(c[1] - n[1]) == 1
+
+def ahead(a, b):
+    return (IDX[b] - IDX[a]) % AREA
+
+route = [CYCLE[0]]
+bites = []
 eaten_at = {}
 
 def length_at(t):
     return min(MAX_LEN, START_LEN + sum(1 for b in bites if b <= t))
 
 def body(t, k_from=0):
-    """Cells of the body at time t, from segment k_from to the tail."""
     return [route[max(0, t - i)] for i in range(k_from, length_at(t))]
 
 def blocked(t, c, d):
-    """Is cell c still under the body when the head gets there d steps after time t?
-    Segment k leaves its cell after length - k steps; one extra step covers a bite on the way."""
+    """Is cell c still under the body when the head gets there d steps after time t?"""
     L = length_at(t) + 1
     for k in range(0, L):
         if route[max(0, t - k)] == c and d < L - k:
             return True
     return False
 
-def plan(targets):
-    t = len(route) - 1
-    start = route[-1]
-    prev, q = {start: None}, deque([(start, 0)])
-    while q:
-        c, d = q.popleft()
-        if c in targets and c != start:
-            path = []
-            while c != start:
-                path.append(c)
-                c = prev[c]
-            return path[::-1]
-        for n in neighbours(c):
-            if n not in prev and not blocked(t, n, d + 1):
-                prev[n] = c
-                q.append((n, d + 1))
-    return None
-
-def free_area(c, t):
-    seen, q = {c}, deque([c])
-    occupied = set(body(t))
-    while q and len(seen) < 200:
-        for n in neighbours(q.popleft()):
-            if n not in seen and n not in occupied:
-                seen.add(n)
-                q.append(n)
-    return len(seen)
-
 targets = {c for c, lv in grid.items() if lv > 0}
 MAX_LEN = START_LEN + len(targets)
-guard = 0
-while targets and guard < 5000:
-    guard += 1
-    level = min(grid[c] for c in targets)  # lightest days first, the violet ones last
-    path = plan({c for c in targets if grid[c] == level})
-    if path is None:  # boxed in: step to the side with the most room and try again
-        t = len(route) - 1
-        options = [n for n in neighbours(route[-1]) if not blocked(t, n, 1)]
-        if not options:
-            break
-        route.append(max(options, key=lambda n: free_area(n, t)))
-        continue
-    for c in path:
-        route.append(c)
-        if c in targets and grid[c] == level:
-            targets.discard(c)
-            eaten_at[c] = len(route) - 1
-            bites.append(len(route) - 1)
+while targets:
+    t = len(route) - 1
+    head = route[-1]
+    L = length_at(t)
+    level = min(grid[c] for c in targets)        # lightest days first, the violet ones last
+    goal = min((c for c in targets if grid[c] == level), key=lambda c: ahead(head, c))
+    tail = route[max(0, t - (L - 1))]
+    room = ahead(head, tail) if L > 1 else AREA  # free cells ahead before the tail
+    nxt = CYCLE[(IDX[head] + 1) % AREA]           # always safe: the next cell on the cycle
+    if L < AREA // 2:
+        for n in neighbours(head):
+            if n == nxt or blocked(t, n, 1):
+                continue
+            jump = ahead(head, n)
+            # only jump forward, stay well clear of the tail, and get closer to the goal
+            if 0 < jump < room - 3 and ahead(n, goal) < ahead(nxt, goal):
+                nxt = n if ahead(n, goal) < ahead(nxt, goal) else nxt
+    route.append(nxt)
+    if nxt in targets and grid[nxt] == level:
+        targets.discard(nxt)
+        eaten_at[nxt] = len(route) - 1
+        bites.append(len(route) - 1)
+    if len(route) > 50 * AREA:
+        sys.exit("route did not finish")
 last_bite = bites[-1] if bites else 0
 
 # coil up: keep turning towards the own body, so it winds into a tight spiral
@@ -143,6 +157,7 @@ for _ in range(40):
 
 # frames: one per route step, then the hold with time standing still
 R = len(route)
+STEP = min(STEP, 55 / R)
 taus = list(range(R)) + [R - 1] * round((HOLD + FADE) / STEP)
 N = len(taus)
 DUR = round(N * STEP, 2)
@@ -168,7 +183,7 @@ def anim(attr, values, extra=""):
 def svg(theme):
     th = THEMES[theme]
     left, top = 48, 64
-    width, height = W * CELL + left + 28, H * CELL + top + 44
+    width, height = W * CELL + left + 44, H * CELL + top + 44
     o = [f'<svg viewBox="{-left} {-top} {width} {height}" width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">',
          '<desc>Contribution snake, generated by scripts/snake.py</desc>',
          f"<style>@font-face{{font-family:'Mono';src:url(data:font/woff2;base64,{FONT}) format('woff2');}}"
@@ -267,6 +282,13 @@ def svg(theme):
     o.append('</svg>')
     return "".join(o)
 
+if targets:
+    sys.exit(f"{len(targets)} days left uneaten")
+if TEST_DENSITY is not None:  # stress test: draw both themes, write nothing
+    for name in THEMES:
+        assert svg(name).endswith("</svg>")
+    print(f"ok: density {TEST_DENSITY}, {len(bites)} days, length {length_at(R - 1)}, {R} steps")
+    sys.exit(0)
 os.makedirs(OUT, exist_ok=True)
 for name in THEMES:
     with open(os.path.join(OUT, name), "w") as f:
