@@ -123,6 +123,15 @@ def in_view(c):
                 return False
     return True
 
+def month_labels(weeks):
+    starts = []
+    for x, w in enumerate(weeks):
+        d = datetime.date.fromisoformat(w["contributionDays"][-1]["date"])
+        if not starts or d.month != starts[-1][2]:
+            starts.append((x, d.strftime("%b"), d.month))
+    return [(x, n) for i, (x, n, _) in enumerate(starts) if i + 1 == len(starts) or starts[i + 1][0] - x >= 3]
+
+
 def svg(th):
     W, H = 1000, 560
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
@@ -203,6 +212,9 @@ def svg(th):
                     f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{FLAG_COL}" stroke="#ffffff" stroke-opacity="0.6" stroke-width="0.8"/></g>'
                     if date in flag_no else '')
                  + '</g></g></g>')
+    for x, name in month_labels(weeks):
+        lx, ly = proj(x + 0.2, 9.0)
+        o.append(f'<text x="{lx:.1f}" y="{ly:.1f}" class="m" font-size="11" fill="{th["mute"]}">{name}</text>')
     INTRO = 0.2
     label_start = INTRO
     o.append(f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{INTRO}s" dur="0.5s" fill="freeze"/>')
