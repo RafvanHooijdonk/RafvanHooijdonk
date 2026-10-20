@@ -66,7 +66,7 @@ if today > 0:
 options.append((":spiral_calendar:", f"{total:,} contributions in the last year"))
 if top and top["contributionCount"] > 0:
     day = datetime.date.fromisoformat(top["date"])
-    options.append((":trophy:", f"Busiest day: {top['contributionCount']} on {day.day} {day:%b %Y}"))
+    options.append((":trophy:", f"Busiest day: {top['contributionCount']} contributions on {day.day} {day:%b %Y}"))
 options.append((":zap:", f"Active on {active_days} days in the last year"))
 
 slot = (now.hour * 60 + now.minute) // 10
