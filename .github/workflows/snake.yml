@@ -33,7 +33,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Faster loop and rounder dots, the action itself only takes colours
       - name: Tune snake animation
-        run: python3 scripts/tune_snake.py dist/github-snake.svg dist/github-snake-dark.svg
+        run: |
+          # the action writes dist/ as root
+          sudo chown -R "$(id -u)" dist
+          python3 scripts/tune_snake.py dist/github-snake.svg dist/github-snake-dark.svg
       # Step 3: Deploy the generated files to the 'output' branch
       - name: Deploy to Output Branch
         uses: peaceiris/actions-gh-pages@v3
