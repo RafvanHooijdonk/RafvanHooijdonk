@@ -129,8 +129,8 @@ FONTS = ("<style>" + "".join(
     + ".i{font-family:'In',Helvetica,Arial,sans-serif}.s{font-family:'InS',Helvetica,Arial,sans-serif;font-weight:600}"
     + ".m{font-family:'Mono',Menlo,Consolas,monospace}.d{font-family:'Sync',Arial Black,sans-serif;font-weight:700}</style>")
 THEMES = {
-    "dark": dict(panel="#0b0b12", line="#1e293b", fg="#f8fafc", sub="#94a3b8", mute="#64748b", track="#0f172a", tile="#f1f5f9", btile="#111827", plate="#e2e8f0"),
-    "light": dict(panel="#ffffff", line="#e2e8f0", fg="#0f172a", sub="#475569", mute="#64748b", track="#f1f5f9", tile="#f8fafc", btile="#f8fafc", plate=None),
+    "dark": dict(panel="#0b0b12", line="#1e293b", fg="#f8fafc", sub="#94a3b8", mute="#64748b", track="#0f172a", tile="#f1f5f9", btile="#111827", plate="#e2e8f0", wave="0.45"),
+    "light": dict(panel="#ffffff", line="#e2e8f0", fg="#0f172a", sub="#475569", mute="#64748b", track="#f1f5f9", tile="#f8fafc", btile="#f8fafc", plate=None, wave="0.85"),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
 # Donut colours by rank, from sky to violet, so the card stays in the README palette
@@ -438,41 +438,59 @@ def stack_items():
     return {g: items for g, items in groups.items() if items}
 
 def stack_card(t, groups):
-    """One grid of equal tiles, as before: tiles pop in one by one, then one tile at a time
-    lifts and glows in the colour of its own logo."""
+    """One grid of equal tiles: tiles pop in one by one; a light wave glides diagonally over
+    the grid every few seconds; one tile at a time flips like a card to show how much it is used."""
     items = [it for g in STACK_GROUPS for it in groups.get(g, [])]
     per_row, cell, TILE = 12, 78, 52
     rows = (len(items) + per_row - 1) // per_row
     W, H = 1000, rows * 88 + 14
     x0 = (W - per_row * cell) / 2 + (cell - TILE) / 2
-    loop = len(items) * 1.2
     intro_end = 0.3 + len(items) * 0.035 + 0.5
+    flippers = [i for i, it in enumerate(items) if it[2]]           # only tiles with a number flip
+    SLOT, TURN, HOLD = 2.6, 0.22, 1.6                               # seconds per flip, half turn, back side shown
+    loop = max(1, len(flippers)) * SLOT
+    WAVE, wave_peak = 6.0, t.get("wave", "0.5")
+    diag_max = (per_row - 1) + (rows - 1) * 2
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
-         '<defs><filter id="gl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6"/></filter></defs>']
+         f'<defs><linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
+         '<linearGradient id="glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0.25" stop-color="#ffffff" stop-opacity="0"/>'
+         '<stop offset="0.5" stop-color="#ffffff" stop-opacity="1"/><stop offset="0.75" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs>']
     esc = lambda s: s.replace("&", "&amp;")
+    kt = lambda sec: f"{sec / loop:.5f}"
     for i, (label, lg, metric, use, col) in enumerate(items):
         r, c = divmod(i, per_row)
         x, y = x0 + c * cell, 8 + r * 88
         cx, cy = x + TILE / 2, y + TILE / 2
-        a0, b0, e = i / len(items), (i + 1) / len(items), 0.3 / loop
-        vis = (f'keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"' if i else
-               f'keyTimes="0;{e:.5f};{b0 - e:.5f};{b0:.5f};{1 - e:.5f};1"')
-        on, off = ("0;0;1;1;0;0", "0;0;-4;-4;0;0") if i else ("0;1;1;0;0;0", "0;-4;-4;0;0;0")
         pop = 0.3 + i * 0.035
+        front = (f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="12" fill="{t["tile"]}" stroke="{t["line"]}"/>'
+                 f'<image href="{lg}" x="{x + 11}" y="{y + 11}" width="30" height="30"/>')
+        flip = back = ""
+        if i in flippers:
+            s0 = flippers.index(i) * SLOT + 0.3
+            times = [0, s0, s0 + TURN, s0 + 2 * TURN, s0 + 2 * TURN + HOLD, s0 + 3 * TURN + HOLD, s0 + 4 * TURN + HOLD, loop]
+            keys = ";".join(kt(v) for v in times)
+            flip = (f'<animateTransform attributeName="transform" type="scale" values="1 1;1 1;0 1;1 1;1 1;0 1;1 1;1 1" '
+                    f'keyTimes="{keys}" begin="{intro_end:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>')
+            swap_in, swap_out = kt(s0 + TURN), kt(s0 + 3 * TURN + HOLD)
+            show_front = f'<animate attributeName="opacity" calcMode="discrete" values="1;0;1" keyTimes="0;{swap_in};{swap_out}" begin="{intro_end:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
+            show_back = f'<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;{swap_in};{swap_out}" begin="{intro_end:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
+            num, unit = (metric.split(" ", 1) + [""])[:2] if " " in metric else (metric, "")
+            back = (f'<g opacity="0">{show_back}'
+                    f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="12" fill="{col}" fill-opacity="0.16" stroke="{col}" stroke-width="1.6"/>'
+                    f'<text x="{cx:.1f}" y="{y + (27 if unit else 32)}" text-anchor="middle" class="s" font-size="17" fill="{t["fg"]}">{esc(num)}</text>'
+                    + (f'<text x="{cx:.1f}" y="{y + 41}" text-anchor="middle" class="m" font-size="9" fill="{t["sub"]}">{esc(unit)}</text>' if unit else "")
+                    + '</g>')
+            front = f'<g>{show_front}{front}</g>'
+        # light wave: a diagonal glare over the tile, timed by its place in the grid
+        wa = (c + r * 2) / max(1, diag_max) * 0.7
+        glare = (f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="12" fill="url(#glare)" opacity="0">'
+                 f'<animate attributeName="opacity" values="0;0;{wave_peak};0;0" keyTimes="0;{wa:.3f};{wa + 0.06:.3f};{wa + 0.14:.3f};1" '
+                 f'begin="{intro_end:.2f}s" dur="{WAVE}s" repeatCount="indefinite"/></rect>')
         o.append(f'<g transform="translate({cx:.1f} {cy:.1f})"><g transform="scale(0)">'
                  f'<animateTransform attributeName="transform" type="scale" values="0;1.12;1" keyTimes="0;0.65;1" begin="{pop:.3f}s" dur="0.45s" fill="freeze"/>'
-                 f'<g transform="translate({-cx:.1f} {-cy:.1f})">'
-                 # the lift and glow while this tile is in the spotlight
-                 f'<g><animateTransform attributeName="transform" type="translate" values="{";".join("0 " + v for v in off.split(";"))}" {vis} '
-                 f'begin="{intro_end:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
-                 f'<rect x="{x - 2}" y="{y - 2}" width="{TILE + 4}" height="{TILE + 4}" rx="14" fill="{col}" opacity="0" filter="url(#gl)">'
-                 f'<animate attributeName="opacity" values="{on.replace("1", "0.55")}" {vis} begin="{intro_end:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/></rect>'
-                 f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="12" fill="{t["tile"]}" stroke="{t["line"]}"/>'
-                 f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="12" fill="none" stroke="{col}" stroke-width="1.6" opacity="0">'
-                 f'<animate attributeName="opacity" values="{on}" {vis} begin="{intro_end:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/></rect>'
-                 f'<image href="{lg}" x="{x + 11}" y="{y + 11}" width="30" height="30"/></g>'
-                 f'<text x="{cx:.1f}" y="{y + 70}" text-anchor="middle" class="m" font-size="10" fill="{t["sub"]}">{esc(label)}</text>'
-                 '</g></g></g>')
+                 f'<g>{flip}<g transform="translate({-cx:.1f} {-cy:.1f})">{front}{back}{glare}</g></g>'
+                 f'<text x="0" y="{y + 70 - cy:.1f}" text-anchor="middle" class="m" font-size="10" fill="{t["sub"]}">{esc(label)}</text>'
+                 '</g></g>')
     o.append('</svg>')
     return "\n".join(o)
 
