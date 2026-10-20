@@ -2,15 +2,24 @@ name: Status
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "0 */3 * * *"
   workflow_dispatch:
+
+concurrency:
+  group: status
+  cancel-in-progress: false
 
 jobs:
   status:
     runs-on: ubuntu-latest
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v5
-      - name: Update GitHub status
+      - name: Update GitHub status every 10 minutes
         env:
           GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
-        run: python3 scripts/status.py
+        run: |
+          for i in $(seq 1 34); do
+            python3 scripts/status.py || true
+            sleep $(( 600 - $(date +%s) % 600 + 5 ))
+          done
