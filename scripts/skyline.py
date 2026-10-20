@@ -177,9 +177,12 @@ def svg(th):
                  f'<rect x="{lx:.1f}" y="{ly:.1f}" width="{w:.1f}" height="20" rx="10" fill="{th["panel"]}" stroke="url(#ac)" stroke-width="1.2"/>'
                  f'<text x="{hx:.1f}" y="{ly + 14:.1f}" text-anchor="middle" class="m" font-size="11" fill="{SKY}">{text}</text>'
                  f'<line x1="{hx:.1f}" y1="{ly + 20:.1f}" x2="{hx:.1f}" y2="{hy - 3:.1f}" stroke="url(#ac)" stroke-width="1.2" stroke-dasharray="2 2"/></g>')
-    # flag: walks through the year, every day with contributions gets it once per round.
+    # flag: jumps between the days, every day with contributions gets it once per round.
     # The pole grows where bars in front would hide the label, so every label stays readable.
+    # random order, every day still once per round; reshuffled with each daily build
     tops = [c for c in sorted(cells, key=lambda c: c[4]) if c[2] > 0]
+    import random
+    random.Random(datetime.date.today().toordinal()).shuffle(tops)
     if tops:
         k, slot = len(tops), 1.0
         loop = k * slot
