@@ -106,7 +106,7 @@ for org in EXTRA_ORGS:
 
 total = sum(langs.values()) or 1
 ranked = sorted(langs.items(), key=lambda kv: -kv[1])
-named = [kv for kv in ranked if kv[1] / total >= 0.001][:7]
+named = [kv for kv in ranked if kv[1] / total >= 0.01][:7]
 top = named
 rest = sum(s for n, s in ranked if (n, s) not in named)
 parts = [(n, s / total, colors[n]) for n, s in top]
@@ -425,7 +425,7 @@ def stack_items():
     top_share = max([f for n, f, c in parts if n != "Other"] + [1e-9])
     for n, size in ranked:
         f = size / total
-        if f < 0.001:
+        if f < 0.01:
             continue
         lg = logos.get(n) or logo(n) or text_logo(n, colors.get(n) or "#64748b")
         if lg:
