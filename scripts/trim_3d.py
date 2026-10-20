@@ -37,9 +37,9 @@ legend = (
     '<text x="0" y="0" style="font-size: 17px;" class="fill-weak">Less</text>'
     f'{squares}'
     '<text x="256" y="0" style="font-size: 17px;" class="fill-weak">More</text>'
-    '<text x="0" y="40" style="font-size: 17px;" class="fill-weak">Bar height is the number of contributions that day</text>'
     '</g>')
-if 'id="legend"' not in svg:
-    svg = svg.replace("</svg>", legend + "</svg>")
+# Replace an earlier legend, so a change here also reaches an already processed file
+svg = re.sub(r'<g id="legend".*?</g>', "", svg, flags=re.S)
+svg = svg.replace("</svg>", legend + "</svg>")
 
 open(path, "w").write(svg)
