@@ -6,7 +6,7 @@ Updated 20 October 2026. Counted over my own repositories, Alpha-Stock and Fleet
 
 | Language | Share |
 | --- | --- |
-| TypeScript | 45.3% |
+| TypeScript | 45.2% |
 | JavaScript | 25.9% |
 | Python | 11.6% |
 | HTML | 8.7% |

@@ -389,8 +389,8 @@ def tools_card(t):
          f'<defs><linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient></defs>',
          f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="16" fill="{t["panel"]}" stroke="{t["line"]}"/>',
          f'<rect x="32" y="0.5" width="48" height="2" fill="url(#ac)"/>',
-         f'<text x="32" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">TOOLING &amp; TESTING</text>',
-         f'<text x="{W-32}" y="44" class="m" font-size="11" fill="{t["mute"]}" text-anchor="end">used in my repositories &#183; {AS_OF_TEXT}</text>']
+         f'<text x="32" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">TOOLING &amp; TESTING USED IN MY REPOSITORIES</text>',
+         f'<text x="{W-32}" y="44" class="m" font-size="10.5" fill="{t["mute"]}" text-anchor="end">{AS_OF_TEXT}</text>']
     for r, (g, items) in enumerate(rows):
         y = 70 + r * rh
         if r:
