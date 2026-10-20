@@ -148,7 +148,7 @@ def svg(th):
         key = c[4][:7]
         if c[2] > 0 and key not in months:
             months.append(key)
-    SPOT = 4.0
+    SPOT = 5.0                                     # seconds per month in the label
     WAVE = 6                                       # seconds between two light waves
     month_span = {}
     for c in cells:
