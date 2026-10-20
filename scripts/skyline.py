@@ -98,6 +98,32 @@ FONTS = ("<style>" + "".join(
     + ".i{font-family:'In',Helvetica,Arial,sans-serif}.s{font-family:'InS',Helvetica,Arial,sans-serif;font-weight:600}"
     + ".m{font-family:'Mono',Menlo,Consolas,monospace}</style>")
 
+def outline(c):
+    """Silhouette of a bar on screen: top face plus the two visible sides."""
+    x, y, n = c[0], c[1], c[2]
+    h = height(n)
+    return [proj(x, y, h), proj(x + 1, y, h), proj(x + 1, y), proj(x + 1, y + 1), proj(x, y + 1), proj(x, y + 1, h)]
+
+def inside_poly(pt, poly):
+    px, py = pt
+    hit = False
+    for i in range(len(poly)):
+        (x1, y1), (x2, y2) = poly[i], poly[i - 1]
+        if (y1 > py) != (y2 > py) and px < (x2 - x1) * (py - y1) / (y2 - y1) + x1:
+            hit = not hit
+    return hit
+
+def in_view(c):
+    """Is the top of this bar, and the flag pole above it, free of bars standing in front?"""
+    fx, fy = proj(c[0] + 0.5, c[1] + 0.5, height(c[2]))
+    probes = [(fx, fy), (fx - 4, fy + 2), (fx + 4, fy + 2), (fx, fy - 15), (fx, fy - 30)]
+    for d in cells:
+        if d[2] > 0 and (d[0] + d[1], d[0]) > (c[0] + c[1], c[0]):
+            poly = outline(d)
+            if any(inside_poly(p, poly) for p in probes):
+                return False
+    return True
+
 def svg(th):
     W, H = 1000, 560
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
@@ -140,35 +166,51 @@ def svg(th):
             lx, ly = proj(x + 0.2, 9.0)
             o.append(f'<text x="{lx:.1f}" y="{ly:.1f}" class="m" font-size="11" fill="{th["mute"]}">{d0.strftime("%b")}</text>')
             last = x
-    # flags: the busiest days in turn, one at a time, round and round
-    tops = [c for c in sorted(cells, key=lambda c: (-c[2], c[4])) if c[2] > 0][:6]
+    # flag: walks through the year, every day with contributions gets it once per round.
+    # The pole grows where bars in front would hide the label, so every label stays readable.
+    tops = [c for c in sorted(cells, key=lambda c: c[4]) if c[2] > 0]
     if tops:
-        k, slot = len(tops), 2.6
+        k, slot = len(tops), 1.0
         loop = k * slot
         start = end_bars + 0.4
-        stat_box = (620, 0, 1000, 265)      # keep flags out of the stat block
+        stat_box = (620, 0, 1000, 265)
+        front = lambda c: [outline(d) for d in cells if d[2] > 0 and (d[0] + d[1], d[0]) > (c[0] + c[1], c[0])]
         for i, c in enumerate(tops):
             fx, fy = proj(c[0] + 0.5, c[1] + 0.5, height(c[2]))
             label = f'{c[2]} on {datetime.date.fromisoformat(c[4]).strftime("%-d %b")}'
             bw = len(label) * 7.2 + 18
-            bx = fx
-            if bx + bw > 990 or (bx + bw > stat_box[0] and fy - 50 < stat_box[3]):
-                bx = fx - bw                # flip to the left of the pole
-            a0, b0, e = i / k, (i + 1) / k, 0.04 / k * 3
+            polys = front(c)
+            pole = 30
+            while pole < 240:
+                for side in (0, 1):
+                    bx = fx if side == 0 else fx - bw
+                    by = fy - pole - 20
+                    corners = [(bx, by), (bx + bw, by), (bx, by + 21), (bx + bw, by + 21), (bx + bw / 2, by + 10)]
+                    in_stats = bx + bw > stat_box[0] and by < stat_box[3]
+                    if bx < 5 or bx + bw > 995 or by < 4 or in_stats:
+                        continue
+                    if not any(inside_poly(p, poly) for p in corners for poly in polys):
+                        break
+                else:
+                    pole += 10
+                    continue
+                break
+            by = max(4, fy - pole - 20)
+            a0, b0, e = i / k, (i + 1) / k, min(0.15 / loop, 0.3 / k)
             if k == 1:
                 vis = 'values="1;1" keyTimes="0;1"'
             elif i == 0:
-                vis = f'values="1;1;0;0;1" keyTimes="0;{b0 - e:.4f};{b0:.4f};{1 - e:.4f};1"'
+                vis = f'values="1;1;0;0;1" keyTimes="0;{b0 - e:.5f};{b0:.5f};{1 - e:.5f};1"'
             else:
-                vis = f'values="0;0;1;1;0;0" keyTimes="0;{a0:.4f};{a0 + e:.4f};{b0 - e:.4f};{b0:.4f};1"'
+                vis = f'values="0;0;1;1;0;0" keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"'
             o.append(f'<g opacity="0"><animate attributeName="opacity" {vis} begin="{start:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
                      f'<circle cx="{fx:.1f}" cy="{fy:.1f}" r="9" fill="{SKY}" opacity="0.35">'
-                     f'<animate attributeName="r" values="4;11;4" dur="1.3s" repeatCount="indefinite"/>'
-                     f'<animate attributeName="opacity" values="0.45;0;0.45" dur="1.3s" repeatCount="indefinite"/></circle>'
-                     f'<line x1="{fx:.1f}" y1="{fy:.1f}" x2="{fx:.1f}" y2="{fy - 30:.1f}" stroke="{th["flag"]}" stroke-width="1.4"/>'
+                     f'<animate attributeName="r" values="4;11;4" dur="1s" repeatCount="indefinite"/>'
+                     f'<animate attributeName="opacity" values="0.45;0;0.45" dur="1s" repeatCount="indefinite"/></circle>'
+                     f'<line x1="{fx:.1f}" y1="{fy:.1f}" x2="{fx:.1f}" y2="{by + 21:.1f}" stroke="{th["flag"]}" stroke-width="1.4"/>'
                      f'<circle cx="{fx:.1f}" cy="{fy:.1f}" r="2.6" fill="{th["flag"]}"/>'
-                     f'<rect x="{bx:.1f}" y="{fy - 50:.1f}" width="{bw:.1f}" height="21" rx="5" fill="{th["flag"]}"/>'
-                     f'<text x="{bx + 9:.1f}" y="{fy - 35.5:.1f}" class="m" font-size="11.5" fill="{th["flag_text"]}">{label}</text></g>')
+                     f'<rect x="{bx:.1f}" y="{by:.1f}" width="{bw:.1f}" height="21" rx="5" fill="{th["flag"]}"/>'
+                     f'<text x="{bx + 9:.1f}" y="{by + 14.5:.1f}" class="m" font-size="11.5" fill="{th["flag_text"]}">{label}</text></g>')
     # stat block, top right, numbers counting up
     px, py = 640, 40
     o.append(f'<text x="{px}" y="{py}" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LAST 12 MONTHS</text>')
@@ -200,4 +242,4 @@ for name, th in THEMES.items():
     if TEST_DENSITY is None:
         with open(os.path.join(ROOT, "assets", f"skyline-{name}.svg"), "w") as f:
             f.write(out)
-print(f"skyline: {len(cells)} days, max {MAXC}, streak {len(STREAK)}, top {TOP[2] if TOP else 0}")
+print(f"skyline: {len(cells)} days, max {MAXC}, streak {len(STREAK)}, flagged days: {sum(1 for c in cells if c[2] > 0)}")
