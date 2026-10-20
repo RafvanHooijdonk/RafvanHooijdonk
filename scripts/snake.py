@@ -261,7 +261,8 @@ free_ok = plan_free()
 free = (list(route), list(bites), dict(eaten_at), out_of_order) if free_ok else None
 plan_cycle()
 planner = "cycle"
-if free and free[3] <= out_of_order:
+# ...but only when its route is not much longer, else the snake has to race to fit the round
+if free and free[3] <= out_of_order and len(free[0]) <= 1.3 * len(route):
     route, bites, eaten_at, out_of_order = free
     targets = set()
     planner = "free"
@@ -352,20 +353,17 @@ def svg(theme):
                              f'<animateTransform attributeName="transform" type="translate" values="0 0;0 0;{dx} {dy};{dx} {dy}" '
                              f'keyTimes="0;{kt(te)};{kt(te + 4)};1" dur="{DUR}s" repeatCount="indefinite"/></circle>')
             o.append('</g>')
-    # progress bar, split per level (light to violet); each day colours its piece when eaten
+    # progress bar
     by = H * CELL + 26
     full = W * CELL
     o.append(f'<clipPath id="bar"><rect x="0" y="{by}" width="{full}" height="5" rx="2.5"/></clipPath>')
     o.append(f'<rect x="0" y="{by}" width="{full}" height="5" rx="2.5" fill="{th["bar"]}"/><g clip-path="url(#bar)">')
     piece = full / max(1, len(eaten_at))
-    x0 = 0.0
-    for lv in (1, 2, 3, 4):
-        days = sorted((te for c, te in eaten_at.items() if grid[c] == lv))
-        for te in days:
-            o.append(f'<rect x="{x0:.2f}" y="{by}" width="{piece + 0.4:.2f}" height="5" fill="{th["dots"][lv]}" opacity="0">'
-                     f'<animate attributeName="opacity" calcMode="discrete" values="0;1;1" keyTimes="0;{kt(te)};1" '
-                     f'dur="{DUR}s" repeatCount="indefinite"/></rect>')
-            x0 += piece
+    # the bar fills left to right in the order the days are eaten, each piece in its day's colour
+    for k, (c, te) in enumerate(sorted(eaten_at.items(), key=lambda kv: kv[1])):
+        o.append(f'<rect x="{k * piece:.2f}" y="{by}" width="{piece + 0.4:.2f}" height="5" fill="{th["dots"][grid[c]]}" opacity="0">'
+                 f'<animate attributeName="opacity" calcMode="discrete" values="0;1;1" keyTimes="0;{kt(te)};1" '
+                 f'dur="{DUR}s" repeatCount="indefinite"/></rect>')
     o.append('</g>')
     # legend, as under the GitHub graph
     lx, ly = (W + 1) * CELL, H * CELL + 44
