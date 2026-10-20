@@ -1,4 +1,4 @@
-import datetime, json, os, sys, urllib.request
+import datetime, json, os, sys, urllib.request, zoneinfo
 
 TOKEN = os.environ["GH_TOKEN"]
 DRY = os.environ.get("STATUS_DRY_RUN") == "1"
@@ -73,6 +73,8 @@ options.append((":zap:", f"Active on {active_days} days in the last year"))
 
 slot = (now.hour * 60 + now.minute) // 10
 emoji, message = options[slot % len(options)]
+stamp = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Amsterdam"))
+message = f"{message} | {stamp:%d/%m/%Y %H:%M}"
 print(f"{len(options)} statuses, slot {slot} -> {emoji} {message}")
 for e, m in options:
     print("  ", e, m)
