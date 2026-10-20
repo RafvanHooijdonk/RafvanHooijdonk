@@ -277,7 +277,7 @@ for _ in range(40):
         break
 
 R = len(route)
-STEP = max(0.035, min(STEP, 90 / R))
+STEP = 0.06
 taus = list(range(R)) + [R - 1] * round((HOLD + FADE) / STEP)
 N = len(taus)
 DUR = round(N * STEP, 2)
