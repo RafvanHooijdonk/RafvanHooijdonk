@@ -20,6 +20,7 @@ LOGOS = {  # GitHub language name -> devicon folder and variant
     "C++": ("cplusplus", "original"), "C": ("c", "original"), "Kotlin": ("kotlin", "original"),
     "Swift": ("swift", "original"), "Dart": ("dart", "original"), "Vue": ("vuejs", "original"),
     "TSQL": ("microsoftsqlserver", "plain"), "PLpgSQL": ("postgresql", "original"),
+    "Pug": ("pug", "original"), "Shell": ("bash", "original"), "PowerShell": ("powershell", "original"),
 }
 
 def logo(name):
@@ -72,10 +73,10 @@ def gql(after=None, query=QUERY, **extra):
         raise SystemExit(body["errors"])
     return body["data"]["viewer"] if query is QUERY else body["data"]["organization"]
 
-langs, colors, repo_count, repo_refs = {}, {}, 0, []
+langs, colors, repo_count, repo_refs, ignored_seen = {}, {}, 0, [], {}
 
 def take(repos):
-    global repo_count
+    global repo_count, ignored_seen
     repo_count += len(repos["nodes"])
     for n in repos["nodes"]:
         if n["defaultBranchRef"]:
@@ -83,6 +84,7 @@ def take(repos):
         for e in n["languages"]["edges"]:
             name = e["node"]["name"]
             if name in IGNORED:
+                ignored_seen[name] = ignored_seen.get(name, 0) + e["size"]
                 continue
             langs[name] = langs.get(name, 0) + e["size"]
             colors[name] = e["node"]["color"] or "#64748b"
@@ -400,9 +402,17 @@ def stack_items():
     groups = {g: [] for g in STACK_GROUPS}
     seen = set()
     top_share = max([f for n, f, c in parts if n != "Other"] + [1e-9])
-    for n, f, c in parts:
-        if n != "Other" and logos.get(n):
-            groups["Languages"].append((n, logos[n], f"{f * 100:.0f}%", f / top_share, c))
+    for n, size in ranked:                         # every language, not only the donut's top six
+        f = size / total
+        if f < 0.001:
+            continue
+        lg = logos.get(n) or logo(n)
+        if lg:
+            groups["Languages"].append((n, lg, f"{f * 100:.0f}%", f / top_share, colors.get(n, SKY)))
+            seen.add(n)
+    for n in ("Shell", "PowerShell"):              # scripts, left out of the share on purpose
+        if ignored_seen.get(n, 0) > 0 and logo(n):
+            groups["Languages"].append((n, logo(n), "scripts", 0, "#4eaa25" if n == "Shell" else "#5391fe"))
             seen.add(n)
     tools = sorted([k for k in found if found[k] >= STACK_MIN_REPOS], key=lambda k: (-found[k], INFO[k][0].lower()))
     most = max([found[k] for k in tools] + [1])
