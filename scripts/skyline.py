@@ -12,9 +12,9 @@ TEST_DENSITY = os.environ.get("SKYLINE_TEST_DENSITY")
 LEVEL = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
 THEMES = {
     "light": dict(levels=["#e2e8f0", "#bae6fd", "#38bdf8", "#0ea5e9", "#8b5cf6"], fg="#0f172a", sub="#475569",
-                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", dim="0.6", page="#ffffff"),
+                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", wave="0.6"),
     "dark": dict(levels=["#1e293b", "#0c4a6e", "#0369a1", "#0ea5e9", "#8b5cf6"], fg="#f8fafc", sub="#94a3b8",
-                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", dim="0.6", page="#0d1117"),
+                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.35"),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
 STREAK_COL, TOP_COL = "#22c55e", "#f59e0b"   # longest streak and busiest day, also in the stat block
@@ -135,13 +135,17 @@ def svg(th):
     streak_days = {c[4] for c in STREAK} if len(STREAK) >= 2 else set()
     end_bars = 0.25 + len(weeks) * 0.035 + 0.7
     live = end_bars + 0.8                         # the continuous effects start once the bars stand
-    # month spotlight: one month at a time gets a glowing outline
+    # month spotlight: one month at a time gets a light wave over its bars
     months = []
     for c in sorted(cells, key=lambda c: c[4]):
         key = c[4][:7]
         if c[2] > 0 and key not in months:
             months.append(key)
     SPOT = 4.0
+    month_span = {}
+    for c in cells:
+        lo, hi = month_span.get(c[4][:7], (c[0], c[0]))
+        month_span[c[4][:7]] = (min(lo, c[0]), max(hi, c[0]))
     spot_loop = max(1, len(months)) * SPOT
     def spot_vis(i, lo, hi):
         """opacity values for window i of the month loop: hi inside the window, lo outside."""
@@ -172,11 +176,22 @@ def svg(th):
         grow += (f'calcMode="spline" keySplines="{"0.2 0.7 0.3 1;0.4 0 0.6 1" if lv == 4 else "0.2 0.7 0.3 1"}" '
                  f'begin="{delay:.3f}s" dur="0.7s" fill="freeze"/>')
         mi = months.index(date[:7]) if date[:7] in months else None
-        # spotlight: the bars of the current month get a glowing outline, nothing else changes
-        haze = (f'<polygon points="{pts(t0, t1, p1, p2, p3, t3)}" fill="none" stroke="{SKY}" stroke-width="1.8" '
-                f'stroke-linejoin="round" filter="url(#glow)" opacity="0">'
-                f'<animate attributeName="opacity" {spot_vis(mi, 0, 1)} begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/></polygon>'
-                if mi is not None else '')
+        # spotlight: while its month is on, a soft light wave glides over this month's tops, twice
+        haze = ''
+        if mi is not None:
+            first_x, last_x = month_span[months[mi]]
+            pos = (x - first_x) / max(1, last_x - first_x)          # 0 at the month's first week, 1 at its last
+            keys, vals = [0.0], ["0"]
+            for sweep in (0, 1):
+                t_on = mi * SPOT + 0.25 + sweep * 1.8 + pos * 1.0
+                for dt, v in ((0, "0"), (0.18, th["wave"]), (0.45, "0")):
+                    keys.append((t_on + dt) / spot_loop)
+                    vals.append(v)
+            keys.append(1.0)
+            vals.append("0")
+            haze = (f'<polygon points="{pts(t0, t1, t2, t3)}" fill="#ffffff" opacity="0">'
+                    f'<animate attributeName="opacity" values="{";".join(vals)}" keyTimes="{";".join(f"{k:.5f}" for k in keys)}" '
+                    f'begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/></polygon>')
         o.append(f'<g transform="translate({ox:.1f} {oy:.1f})"><g transform="scale(1 0)">{grow}'
                  f'<g transform="translate({-ox:.1f} {-oy:.1f})">'
                  f'<polygon points="{pts(p3, p2, t2, t3)}" fill="{shade(side, 0.78)}"/>'
@@ -190,25 +205,6 @@ def svg(th):
         o.append(f'<g opacity="0"><animate attributeName="opacity" {spot_vis(i, 0, 1)} begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/>'
                  f'<text x="40" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">{name.upper()}</text>'
                  f'<text x="40" y="74" class="s" font-size="24" fill="{th["fg"]}">{total:,}<tspan class="i" font-size="13" fill="{th["sub"]}"> contributions</tspan></text></g>')
-    # today beacon on the last day of the calendar
-    today = max(cells, key=lambda c: c[4])
-    tx, ty = proj(today[0] + 0.5, today[1] + 0.5, height(today[2]))
-    o.append(f'<g opacity="0"><animate attributeName="opacity" values="0;1" begin="{live:.2f}s" dur="0.4s" fill="freeze"/>'
-             f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="4" fill="{SKY}"><animate attributeName="r" values="4;14;4" dur="1.8s" repeatCount="indefinite"/>'
-             f'<animate attributeName="opacity" values="0.6;0;0.6" dur="1.8s" repeatCount="indefinite"/></circle>'
-             f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="3.5" fill="{SKY}"/>'
-             f'<line x1="{tx:.1f}" y1="{ty - 4:.1f}" x2="{tx:.1f}" y2="{ty - 22:.1f}" stroke="{SKY}" stroke-width="1.2"/>'
-             f'<rect x="{tx - 24:.1f}" y="{ty - 40:.1f}" width="48" height="18" rx="9" fill="{th["panel"]}" stroke="{SKY}"/>'
-             f'<text x="{tx:.1f}" y="{ty - 27.5:.1f}" text-anchor="middle" class="m" font-size="11" fill="{SKY}">today</text></g>')
-    # month labels along the front edge
-    last = -10
-    for x, w in enumerate(weeks):
-        d0 = datetime.date.fromisoformat(w["contributionDays"][0]["date"])
-        prev = datetime.date.fromisoformat(weeks[x - 1]["contributionDays"][0]["date"]).month if x else None
-        if (x == 0 or d0.month != prev) and x - last >= 3:
-            lx, ly = proj(x + 0.2, 9.0)
-            o.append(f'<text x="{lx:.1f}" y="{ly:.1f}" class="m" font-size="11" fill="{th["mute"]}">{d0.strftime("%b")}</text>')
-            last = x
     # flag: jumps between the days, every day with contributions gets it once per round.
     # The pole grows where bars in front would hide the label, so every label stays readable.
     # random order, every day still once per round; reshuffled with each daily build
