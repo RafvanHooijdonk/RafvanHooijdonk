@@ -1,18 +1,12 @@
-"""Builds assets/stats-{dark,light}.svg: language mix and yearly numbers, in the README style.
-
-Runs in the 'Stats card' workflow with GH_TOKEN (a personal token, so private repos count).
-"""
 import base64, json, math, os, re, urllib.error, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOKEN = os.environ["GH_TOKEN"]
-# Notebooks are huge because of stored output, and shader/markup files say little about the code written.
 IGNORED = {"Jupyter Notebook", "ShaderLab", "HLSL", "Dockerfile", "Procfile", "Batchfile", "PowerShell", "Shell"}
 TOP = 6
-# Organisations whose repositories are my own work too (my own startup), counted like personal repos.
 EXTRA_ORGS = ["Alpha-Stock"]
 DEVICON = "https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons/{0}/{0}-{1}.svg"
-LOGOS = {  # GitHub language name -> devicon folder and variant
+LOGOS = {
     "TypeScript": ("typescript", "original"), "JavaScript": ("javascript", "original"),
     "Python": ("python", "original"), "C#": ("csharp", "original"), "Java": ("java", "original"),
     "HTML": ("html5", "original"), "CSS": ("css3", "original"), "SCSS": ("sass", "original"),
@@ -24,7 +18,6 @@ LOGOS = {  # GitHub language name -> devicon folder and variant
 }
 
 def logo(name):
-    """Logo as a data URI, or None so the card falls back to a coloured dot."""
     if name not in LOGOS:
         return None
     try:
@@ -133,7 +126,6 @@ THEMES = {
     "light": dict(panel="#ffffff", line="#e2e8f0", fg="#0f172a", sub="#475569", mute="#64748b", track="#f1f5f9", tile="#f8fafc", btile="#f8fafc", plate=None, wave="0.85"),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
-# Donut colours by rank, from sky to violet, so the card stays in the README palette
 DONUT = ["#0ea5e9", "#38bdf8", "#7dd3fc", "#6366f1", "#8b5cf6", "#c4b5fd", "#94a3b8"]
 
 def card(t):
@@ -143,19 +135,37 @@ def card(t):
          f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="16" fill="{t["panel"]}" stroke="{t["line"]}"/>',
          f'<rect x="32" y="0.5" width="48" height="2" fill="url(#ac)"/>',
          f'<text x="32" y="44" class="m" font-size="11" fill="{SKY}" letter-spacing="1.8">LANGUAGES</text>']
-    # donut: one circle per language, drawn with a dash on a shared ring
     cx, cy, r, sw = 112, 146, 64, 22
     circ = 2 * math.pi * r
     o.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{t["track"]}" stroke-width="{sw}"/>')
+    shown = [(i, n, f) for i, (n, f, c) in enumerate(parts) if n != "Other"]
+    slot, fade, centre_start = 2.5, 0.4, 1.4
+    loop = max(1, len(shown)) * slot
+    def turn(k, lo, hi):
+        a0, b0, e = k / len(shown), (k + 1) / len(shown), fade / loop
+        if len(shown) == 1:
+            return f'values="{hi};{hi}" keyTimes="0;1"'
+        if k == 0:
+            return f'values="{hi};{hi};{lo};{lo};{hi}" keyTimes="0;{b0 - e:.5f};{b0:.5f};{1 - e:.5f};1"'
+        return f'values="{lo};{lo};{hi};{hi};{lo};{lo}" keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"'
+    turn_of = {i: k for k, (i, n, f) in enumerate(shown)}
     start = 0.0
     for i, (n, f, c) in enumerate(parts):
-        seg = max(circ * f - 2, 0.6)  # small gap between segments
+        seg = max(circ * f - 2, 0.6)
         col = DONUT[i] if n != "Other" else "#94a3b8"
+        swell = (f'<animate attributeName="stroke-width" {turn(turn_of[i], sw, sw + 7)} begin="{centre_start}s" '
+                 f'dur="{loop}s" repeatCount="indefinite"/>' if i in turn_of else '')
         o.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{col}" stroke-width="{sw}" '
                  f'stroke-dasharray="{seg:.2f} {circ:.2f}" stroke-dashoffset="{-start:.2f}" transform="rotate(-90 {cx} {cy})">'
                  f'<animate attributeName="stroke-dasharray" values="0 {circ:.2f};0 {circ:.2f};{seg:.2f} {circ:.2f}" '
-                 f'keyTimes="0;{min(0.85, 0.12*i):.2f};1" dur="{0.7+0.12*i:.2f}s"/></circle>')
+                 f'keyTimes="0;{min(0.85, 0.12*i):.2f};1" dur="{0.7+0.12*i:.2f}s"/>{swell}</circle>')
         start += circ * f
+    for k, (i, n, f) in enumerate(shown):
+        lg = logos.get(n)
+        o.append(f'<g opacity="0"><animate attributeName="opacity" {turn(k, 0, 1)} begin="{centre_start}s" dur="{loop}s" repeatCount="indefinite"/>'
+                 + (f'<image href="{lg}" x="{cx - 12}" y="{cy - 30}" width="24" height="24"/>' if lg else '')
+                 + f'<text x="{cx}" y="{cy + 10}" text-anchor="middle" class="s" font-size="12" fill="{t["fg"]}">{n}</text>'
+                 f'<text x="{cx}" y="{cy + 26}" text-anchor="middle" class="m" font-size="11" fill="{t["sub"]}">{f * 100:.1f}%</text></g>')
     for i, (n, f, c) in enumerate(parts):
         col, row = i // 4, i % 4
         lx, ly = 228 + col * 200, 92 + row * 34
@@ -175,13 +185,9 @@ def card(t):
     o.append('</svg>')
     return "\n".join(o)
 
-# ---------- tooling and testing, detected automatically ----------
-# Every dependency and config file is matched against the devicon catalogue (about 470 tools
-# with tags), so a tool I start using shows up by itself, with its logo and a group taken
-# from its tags. Only display names, a few aliases and group corrections are set by hand.
 with urllib.request.urlopen("https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.json", timeout=30) as r:
     CATALOG = {e["name"]: e for e in json.load(r)}
-SKIP_TAGS = {"language", "editor", "ide", "os", "browser"}  # languages sit in the donut already
+SKIP_TAGS = {"language", "editor", "ide", "os", "browser"}
 SKIP = {"nodejs", "npm", "yarn", "pnpm", "git", "github", "json", "markdown", "yaml", "babel", "html5", "css3", "bash"}
 
 def norm(s): return re.sub(r"[^a-z0-9]", "", s.lower())
@@ -205,15 +211,11 @@ def match(token):
             return cand
     return None
 
-# The catalogue has a few tools twice under different names, count them as one
 CANON = {"vite": "vitejs"}
 
-# Tools without their own devicon (shown with the .NET logo), keyed like catalogue names
 SPECIAL = {"xunit": ("xUnit", "Testing"), "nunit": ("NUnit", "Testing"), "mstest": ("MSTest", "Testing"),
            "efcore": ("EF Core", "Data & AI")}
 NUGET_SPECIAL = {"xunit": "xunit", "nunit": "nunit", "mstest.testframework": "mstest", "microsoft.entityframeworkcore": "efcore"}
-# Display names for every tool in the catalogue, so a newly detected tool is spelled right at once.
-# A tool the catalogue adds later falls back to its catalogue name; add it to tool-names.json then.
 with open(os.path.join(ROOT, "scripts", "tool-names.json")) as f:
     PRETTY = json.load(f)
 GROUP_FIX = {"vitejs": "Frameworks", "eslint": "DevOps", "githubactions": "DevOps", "jupyter": "Data & AI",
@@ -225,7 +227,6 @@ DEVOPS_TAGS = {"container", "deploy", "deployment", "cloud", "hosting", "ci", "c
                "server", "monitoring", "security", "platform", "build", "package", "manager", "tool", "auth"}
 
 def info(key):
-    """(display name, group, logo folder, logo variant) for a detected tool."""
     if key in SPECIAL:
         name, group = SPECIAL[key]
         return name, group, "dot-net", "original"
@@ -237,7 +238,7 @@ def info(key):
     variant = "original" if "original" in svgs else "plain" if "plain" in svgs else svgs[0]
     return PRETTY.get(key, key.capitalize()), group, key, variant
 
-PATH_RULES = [  # (test on a lower-case path, catalogue name)
+PATH_RULES = [
     (lambda p: p.startswith(".github/workflows/") and p.endswith((".yml", ".yaml")), "githubactions"),
     (lambda p: p.rsplit("/", 1)[-1] in ("dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yaml"), "docker"),
     (lambda p: "/jest.config." in "/" + p, "jest"), (lambda p: "/vitest.config." in "/" + p, "vitest"),
@@ -274,7 +275,7 @@ def npm_tokens(dep):
     return [dep]
 
 TEST_FILE = re.compile(r"(\.(test|spec)\.[cm]?[jt]sx?$)|(^|/)test_[^/]+\.py$|(^|/)[^/]+_test\.py$|tests?\.cs$|(^|/)cypress/e2e/")
-REPOS = {}  # (owner, name) -> (paths, {manifest path: text}), read once and reused for the project cards
+REPOS = {}
 
 def read_repo(owner, name, branch):
     try:
@@ -292,7 +293,6 @@ def read_repo(owner, name, branch):
     return paths, texts
 
 def detect(paths, texts):
-    """Catalogue names of the tools that these files show."""
     hits = set()
     for p in paths:
         lp = p.lower()
@@ -334,8 +334,6 @@ for owner, name, branch in repo_refs:
     for h in detect(paths, texts):
         found[h] = found.get(h, 0) + 1
 
-# repositories the workflow cannot reach (work repos under another account): only their
-# tool names, read on Raf's machine with scripts/local_repo_tools.py
 extra_path = os.path.join(ROOT, "scripts", "extra-repos.json")
 EXTRA_REPOS = json.load(open(extra_path)) if os.path.exists(extra_path) else []
 for extra in EXTRA_REPOS:
@@ -379,7 +377,7 @@ def tools_card(t):
         if g == "Testing" and test_files:
             o.append(f'<text x="32" y="{y+48}" class="m" font-size="10.5" fill="{SKY}">{test_files:,} test files</text>')
         for k, key in enumerate(items):
-            if isinstance(key, tuple):            # a daily tool, no repository count
+            if isinstance(key, tuple):
                 label, folder, variant = key[1]
                 sub = "used daily"
             else:
@@ -395,18 +393,11 @@ def tools_card(t):
     o.append('</svg>')
     return "\n".join(o)
 
-# ---------- stack: a bento per category, filled automatically ----------
-# Languages by share, then every tool found in at least two repositories, grouped like the
-# tooling card, plus a few things that never show up in code. The most used item of each
-# group gets a wide tile; a thin bar shows how much it is used; one tile at a time lights
-# up in the colour of its own logo.
 STACK_MIN_REPOS = 2
 STACK_EXTRA = [("Supabase", "supabase", "original", "Data & AI"), ("Azure", "azure", "original", "DevOps")]
-# everyday tools: not part of the stack, shown as their own row on the tooling card
 DAILY_TOOLS = [("Git", "git", "original"), ("GitHub", "github", "original"), ("VS Code", "vscode", "original"),
                ("Windows", "windows11", "original"), ("macOS", "apple", "original")]
 STACK_GROUPS = ["Languages", "Frameworks", "Data & AI", "Testing", "DevOps", "Tools"]
-# development helpers: real tools, but not what a tech stack is made of (still on the tooling card)
 STACK_SKIP = {"nodemon", "postcss", "babel", "eslint", "githubactions", "swagger", "jupyter", "prettier"}
 
 def brand(folder, fallback=SKY):
@@ -415,7 +406,6 @@ def brand(folder, fallback=SKY):
     return c if c.startswith("#") and len(c) in (4, 7) else fallback
 
 def text_logo(name, color):
-    """A simple logo for a language the icon set does not have: its name in its own colour."""
     short = name if len(name) <= 4 else name[:3]
     svg = (f"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='{color}'/>"
            f"<text x='16' y='21' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='700' "
@@ -423,11 +413,10 @@ def text_logo(name, color):
     return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
 
 def stack_items():
-    """{group: [(label, logo, metric text, usage 0..1, brand colour)]}"""
     groups = {g: [] for g in STACK_GROUPS}
     seen = set()
     top_share = max([f for n, f, c in parts if n != "Other"] + [1e-9])
-    for n, size in ranked:                         # every language, not only the donut's top six
+    for n, size in ranked:
         f = size / total
         if f < 0.001:
             continue
@@ -435,7 +424,7 @@ def stack_items():
         if lg:
             groups["Languages"].append((n, lg, f"{f * 100:.0f}%", f / top_share, colors.get(n, SKY)))
             seen.add(n)
-    for n in ("Shell", "PowerShell"):              # scripts, left out of the share on purpose
+    for n in ("Shell", "PowerShell"):
         if ignored_seen.get(n, 0) > 0 and logo(n):
             groups["Languages"].append((n, logo(n), "scripts", 0, "#4eaa25" if n == "Shell" else "#5391fe"))
             seen.add(n)
@@ -457,16 +446,14 @@ def stack_items():
     return {g: items for g, items in groups.items() if items}
 
 def stack_card(t, groups):
-    """One grid of equal tiles: tiles pop in one by one, then a light wave glides diagonally
-    over the grid every few seconds."""
     items = [it for g in STACK_GROUPS for it in groups.get(g, [])]
     per_row, cell, TILE = 12, 78, 52
     rows = (len(items) + per_row - 1) // per_row
     W, H = 1000, rows * 88 + 14
     x0 = (W - per_row * cell) / 2 + (cell - TILE) / 2
     intro_end = 0.3 + len(items) * 0.035 + 0.5
-    flippers = []                                                   # flipping switched off
-    SLOT, TURN, HOLD = 2.6, 0.22, 1.6                               # seconds per flip, half turn, back side shown
+    flippers = []
+    SLOT, TURN, HOLD = 2.6, 0.22, 1.6
     loop = max(1, len(flippers)) * SLOT
     WAVE, wave_peak = 6.0, t.get("wave", "0.5")
     diag_max = (per_row - 1) + (rows - 1) * 2
@@ -500,7 +487,6 @@ def stack_card(t, groups):
                     + (f'<text x="{cx:.1f}" y="{y + 41}" text-anchor="middle" class="m" font-size="9" fill="{t["sub"]}">{esc(unit)}</text>' if unit else "")
                     + '</g>')
             front = f'<g>{show_front}{front}</g>'
-        # light wave: a diagonal glare over the tile, timed by its place in the grid
         wa = (c + r * 2) / max(1, diag_max) * 0.7
         glare = (f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="12" fill="url(#glare)" opacity="0">'
                  f'<animate attributeName="opacity" values="0;0;{wave_peak};0;0" keyTimes="0;{wa:.3f};{wa + 0.06:.3f};{wa + 0.14:.3f};1" '
@@ -515,7 +501,6 @@ def stack_card(t, groups):
 
 STACK = stack_items()
 
-# ---------- project cards: everything a project uses, as logos ----------
 EXT_LANG = {".ts": "TypeScript", ".tsx": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript",
             ".py": "Python", ".cs": "C#", ".java": "Java", ".html": "HTML", ".css": "CSS", ".scss": "SCSS",
             ".go": "Go", ".rs": "Rust", ".php": "PHP", ".kt": "Kotlin", ".swift": "Swift", ".dart": "Dart", ".vue": "Vue"}
@@ -567,7 +552,9 @@ def project_card(t, pr, items, rows):
          '<defs><clipPath id="ir"><rect x="24" y="58" width="48" height="48" rx="11"/></clipPath>'
          f'<linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
          '<linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.5" stop-color="#fff" stop-opacity="0.9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
-         '<clipPath id="tb"><rect x="24" y="0.5" width="48" height="3" rx="1.5"/></clipPath></defs>',
+         '<clipPath id="tb"><rect x="24" y="0.5" width="48" height="3" rx="1.5"/></clipPath>'
+         '<linearGradient id="glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0.25" stop-color="#ffffff" stop-opacity="0"/>'
+         '<stop offset="0.5" stop-color="#ffffff" stop-opacity="1"/><stop offset="0.75" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs>',
          f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="14" fill="{t["panel"]}" stroke="{t["line"]}"/>',
          '<rect x="24" y="0.5" width="48" height="3" rx="1.5" fill="url(#ac)"/>'
          '<rect x="24" y="0.5" width="18" height="3" fill="url(#shine)" opacity="0.8" clip-path="url(#tb)">'
@@ -594,8 +581,12 @@ def project_card(t, pr, items, rows):
     for i, (label, lg) in enumerate(items):
         r, c = divmod(i, 9)
         x, yy = 24 + c * 30.5, 244 + r * 30
+        wa = (c + r * 2) / 12 * 0.7
         o.append(f'<rect x="{x:.1f}" y="{yy}" width="26" height="26" rx="6" fill="{t["tile"]}" stroke="{t["line"]}"/>'
-                 f'<image href="{lg}" x="{x+4:.1f}" y="{yy+4}" width="18" height="18"/>')
+                 f'<image href="{lg}" x="{x+4:.1f}" y="{yy+4}" width="18" height="18"/>'
+                 f'<rect x="{x:.1f}" y="{yy}" width="26" height="26" rx="6" fill="url(#glare)" opacity="0">'
+                 f'<animate attributeName="opacity" values="0;0;{t["wave"]};0;0" keyTimes="0;{wa:.3f};{wa + 0.06:.3f};{wa + 0.14:.3f};1" '
+                 f'begin="1s" dur="6s" repeatCount="indefinite"/></rect>')
     o.append('</svg>')
     return "\n".join(o)
 
@@ -615,7 +606,6 @@ for name, t in THEMES.items():
     for pr in PROJECTS:
         with open(os.path.join(ROOT, "assets", f"card-{pr['slug']}-{name}.svg"), "w") as f:
             f.write(project_card(t, pr, pr["items"], CARD_ROWS))
-# Details page behind the cards: full lists, since an image in a README cannot show tooltips.
 import datetime
 md = ["# Languages and tooling", "",
       f"Updated {datetime.date.today():%d %B %Y}. Counted over my own repositories, {', '.join(EXTRA_ORGS)}"

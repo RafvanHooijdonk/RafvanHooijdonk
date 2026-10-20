@@ -1,18 +1,10 @@
-"""Reads the tools of a repository on this machine that the workflow cannot reach (a work repo
-under another GitHub account) and stores only their names in scripts/extra-repos.json.
-
-    python3 scripts/local_repo_tools.py ~/Documents/GitHub/fleetbuddy FleetBuddy
-
-No code and no manifest files leave the machine: just tool names and a count of test files.
-"""
 import json, os, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 repo, name = os.path.expanduser(sys.argv[1]), sys.argv[2]
 
-# reuse the exact detection of the stats script, so both count the same way
 src = open(os.path.join(ROOT, "scripts", "stats_card.py")).read()
-start = src.index("# ---------- tooling and testing, detected automatically ----------")
+start = src.index("with urllib.request.urlopen(\"https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.json\"")
 end = src.index("found = {}\ntest_files = 0")
 ns = {"__name__": "detector", "ROOT": ROOT, "TOKEN": "",
       "DEVICON": "https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons/{0}/{0}-{1}.svg"}

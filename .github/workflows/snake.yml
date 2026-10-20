@@ -1,12 +1,9 @@
 name: Snake
 
 on:
-  # Schedule the workflow to run daily at midnight UTC
   schedule:
     - cron: "0 0 * * *"
-  # Allow manual triggering of the workflow
   workflow_dispatch:
-  # Trigger the workflow on pushes to the main branch
   push:
     branches:
       - main
@@ -15,26 +12,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
-      # Step 2a: Stress test the route, from an empty to a completely full year
       - name: Stress test snake
         run: |
           for d in 0.0 0.05 0.3 0.6 0.9 1.0; do
             for seed in 1 2 3; do SNAKE_TEST_DENSITY=$d SNAKE_TEST_SEED=$seed python3 scripts/snake.py; done
           done
-      # Step 2b: Build the snake with our own generator (grows with every bite)
       - name: Generate snake
         env:
           GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
         run: python3 scripts/snake.py dist
-      # Step 3: Deploy the generated files to the 'output' branch
       - name: Deploy to Output Branch
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: output
-          # Optionally, you can set a custom commit message
           commit_message: "Update snake animation [skip ci]"
