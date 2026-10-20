@@ -1,4 +1,4 @@
-name: GitHub Snake Game
+name: Snake
 
 on:
   # Schedule the workflow to run daily at midnight UTC
@@ -18,25 +18,11 @@ jobs:
       # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
-      # Step 2: Generate the snake animations
-      - name: Generate GitHub Contributions Snake Animations
-        uses: Platane/snk@v3
-        with:
-          # GitHub username to generate the animation for
-          github_user_name: ${{ github.repository_owner }}
-          # Define the output files and their configurations
-          # Same five levels as the 3D graph: slate, light sky, sky, deep sky, violet. Snake in the green of the LIVE labels
-          outputs: |
-            dist/github-snake.svg?color_snake=#22c55e&color_dot_border=#0f172a14&color_dots=#e2e8f0,#bae6fd,#38bdf8,#0ea5e9,#8b5cf6
-            dist/github-snake-dark.svg?palette=github-dark&color_snake=#22c55e&color_dot_border=#ffffff14&color_dots=#1e293b,#0c4a6e,#0369a1,#0ea5e9,#8b5cf6
+      # Step 2: Build the snake with our own generator (grows with every bite)
+      - name: Generate snake
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # Faster loop and rounder dots, the action itself only takes colours
-      - name: Tune snake animation
-        run: |
-          # the action writes dist/ as root
-          sudo chown -R "$(id -u)" dist
-          python3 scripts/tune_snake.py dist/github-snake.svg dist/github-snake-dark.svg
+          GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
+        run: python3 scripts/snake.py dist
       # Step 3: Deploy the generated files to the 'output' branch
       - name: Deploy to Output Branch
         uses: peaceiris/actions-gh-pages@v3
