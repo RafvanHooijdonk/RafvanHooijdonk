@@ -12,14 +12,13 @@ TEST_DENSITY = os.environ.get("SKYLINE_TEST_DENSITY")
 LEVEL = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
 THEMES = {
     "light": dict(levels=["#e2e8f0", "#bae6fd", "#38bdf8", "#0ea5e9", "#8b5cf6"], fg="#0f172a", sub="#475569",
-                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", wave="0.6",
+                  mute="#64748b", panel="#ffffff", line="#e2e8f0", flag="#0f172a", flag_text="#ffffff", wave="0.6", floor="#eef2f7", page="#ffffff", edge="0.7",
                   ink={1: "#0284c7", 2: "#0284c7", 3: "#0369a1", 4: "#7c3aed", "streak": "#16a34a", "top": "#d97706"}),
     "dark": dict(levels=["#1e293b", "#0c4a6e", "#0369a1", "#0ea5e9", "#8b5cf6"], fg="#f8fafc", sub="#94a3b8",
-                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.35",
+                 mute="#64748b", panel="#0b0b12", line="#1e293b", flag="#f8fafc", flag_text="#020204", wave="0.35", floor="#161b26", page="#0d1117", edge="0.25",
                  ink={1: "#7dd3fc", 2: "#38bdf8", 3: "#38bdf8", 4: "#a78bfa", "streak": "#22c55e", "top": "#f59e0b"}),
 }
 SKY, VIO = "#0ea5e9", "#8b5cf6"
-STREAK_COL, TOP_COL = "#22c55e", "#f59e0b"   # longest streak and busiest day, also in the stat block
 
 # ---------------- data ----------------
 QUERY = """{ viewer { contributionsCollection { totalCommitContributions restrictedContributionsCount
@@ -78,6 +77,7 @@ WX, WY = 14.0, 6.2      # one week to the right and down
 DX, DY = -10.0, 5.0     # one weekday to the left and down
 OX, OY = 130.0, 175.0   # top corner of the first week
 MAXH = 120.0
+INSET = 0.12           # gap around each bar inside its cell
 
 def proj(x, y, h=0.0):
     return OX + x * WX + y * DX, OY + x * WY + y * DY - h
@@ -105,7 +105,8 @@ def outline(c):
     """Silhouette of a bar on screen: top face plus the two visible sides."""
     x, y, n = c[0], c[1], c[2]
     h = height(n)
-    return [proj(x, y, h), proj(x + 1, y, h), proj(x + 1, y), proj(x + 1, y + 1), proj(x, y + 1), proj(x, y + 1, h)]
+    a0, a1, b0, b1 = x + INSET, x + 1 - INSET, y + INSET, y + 1 - INSET
+    return [proj(a0, b0, h), proj(a1, b0, h), proj(a1, b0), proj(a1, b1), proj(a0, b1), proj(a0, b1, h)]
 
 def inside_poly(pt, poly):
     px, py = pt
@@ -128,22 +129,27 @@ def in_view(c):
     return True
 
 def svg(th):
-    W, H = 1000, 575
+    W, H = 1000, 560
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
          f'<defs><linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
          f'<filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" result="b"/>'
-         f'<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>']
+         f'<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+         + "".join(f'<linearGradient id="sl{k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{shade(c, 0.88)}"/><stop offset="1" stop-color="{shade(c, 0.64)}"/></linearGradient>'
+                   f'<linearGradient id="sr{k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{shade(c, 0.99)}"/><stop offset="1" stop-color="{shade(c, 0.76)}"/></linearGradient>'
+                   for k, c in enumerate(th["levels"]))
+         + '</defs>']
     # bars, back to front so nearer ones cover the ones behind
     streak_days = {c[4] for c in STREAK} if len(STREAK) >= 2 else set()
     end_bars = 0.25 + len(weeks) * 0.035 + 0.7
     live = end_bars + 0.8                         # the continuous effects start once the bars stand
-    # month spotlight: one month at a time gets a light wave over its bars
+    # month label: one month at a time with its total, top left
     months = []
     for c in sorted(cells, key=lambda c: c[4]):
         key = c[4][:7]
         if c[2] > 0 and key not in months:
             months.append(key)
     SPOT = 4.0
+    WAVE = 6                                       # seconds between two light waves
     month_span = {}
     for c in cells:
         lo, hi = month_span.get(c[4][:7], (c[0], c[0]))
@@ -158,19 +164,18 @@ def svg(th):
         if i == 0:
             return f'values="{hi};{hi};{lo};{lo};{hi}" keyTimes="0;{b - e:.5f};{b:.5f};{1 - e:.5f};1"'
         return f'values="{lo};{lo};{hi};{hi};{lo};{lo}" keyTimes="0;{a:.5f};{a + e:.5f};{b - e:.5f};{b:.5f};1"'
+    for x, y, n, lv, date in cells:                # floor: one fine tile per day
+        f0, f1, f2, f3 = proj(x, y), proj(x + 1, y), proj(x + 1, y + 1), proj(x, y + 1)
+        o.append(f'<polygon points="{pts(f0, f1, f2, f3)}" fill="{th["floor"]}" stroke="{th["page"]}" stroke-width="1"/>')
     for x, y, n, lv, date in sorted(cells, key=lambda c: (c[0] + c[1], c[0])):
         h = height(n)
         top = th["levels"][lv]
-        side = top
-        if TOP and date == TOP[4]:
-            top = TOP_COL
-        elif date in streak_days:
-            top = STREAK_COL
-        p0, p1, p2, p3 = proj(x, y), proj(x + 1, y), proj(x + 1, y + 1), proj(x, y + 1)
         if h == 0:
-            o.append(f'<polygon points="{pts(p0, p1, p2, p3)}" fill="{top}" stroke="{th["panel"]}" stroke-width="0.6"/>')
-            continue
-        t0, t1, t2, t3 = (proj(a, b, h) for a, b in ((x, y), (x + 1, y), (x + 1, y + 1), (x, y + 1)))
+            continue                               # the floor is drawn underneath already
+        # bars stand as separate pillars, slightly smaller than their cell
+        a0, a1, b0, b1 = x + INSET, x + 1 - INSET, y + INSET, y + 1 - INSET
+        p0, p1, p2, p3 = proj(a0, b0), proj(a1, b0), proj(a1, b1), proj(a0, b1)
+        t0, t1, t2, t3 = (proj(a, b, h) for a, b in ((a0, b0), (a1, b0), (a1, b1), (a0, b1)))
         ox, oy = p2  # grow from the front corner of the base
         delay = 0.25 + x * 0.035
         grow = (f'<animateTransform attributeName="transform" type="scale" values="1 0;1 1.14;1 1" keyTimes="0;0.7;1" '
@@ -178,27 +183,16 @@ def svg(th):
         grow += (f'calcMode="spline" keySplines="{"0.2 0.7 0.3 1;0.4 0 0.6 1" if lv == 4 else "0.2 0.7 0.3 1"}" '
                  f'begin="{delay:.3f}s" dur="0.7s" fill="freeze"/>')
         mi = months.index(date[:7]) if date[:7] in months else None
-        # spotlight: while its month is on, a soft light wave glides over this month's tops, twice
-        haze = ''
-        if mi is not None:
-            first_x, last_x = month_span[months[mi]]
-            pos = (x - first_x) / max(1, last_x - first_x)          # 0 at the month's first week, 1 at its last
-            keys, vals = [0.0], ["0"]
-            for sweep in (0, 1):
-                t_on = mi * SPOT + 0.25 + sweep * 1.8 + pos * 1.0
-                for dt, v in ((0, "0"), (0.18, th["wave"]), (0.45, "0")):
-                    keys.append((t_on + dt) / spot_loop)
-                    vals.append(v)
-            keys.append(1.0)
-            vals.append("0")
-            haze = (f'<polygon points="{pts(t0, t1, t2, t3)}" fill="#ffffff" opacity="0">'
-                    f'<animate attributeName="opacity" values="{";".join(vals)}" keyTimes="{";".join(f"{k:.5f}" for k in keys)}" '
-                    f'begin="{live:.2f}s" dur="{spot_loop:.1f}s" repeatCount="indefinite"/></polygon>')
+        # light wave: every few seconds a soft highlight glides over all tops, left to right
+        wa = x / len(weeks) * 0.85
+        haze = (f'<polygon points="{pts(t0, t1, t2, t3)}" fill="#ffffff" opacity="0">'
+                f'<animate attributeName="opacity" values="0;0;{th["wave"]};0;0" keyTimes="0;{wa:.3f};{wa + 0.04:.3f};{wa + 0.1:.3f};1" '
+                f'begin="{live:.2f}s" dur="{WAVE}s" repeatCount="indefinite"/></polygon>')
         o.append(f'<g transform="translate({ox:.1f} {oy:.1f})"><g transform="scale(1 0)">{grow}'
                  f'<g transform="translate({-ox:.1f} {-oy:.1f})">'
-                 f'<polygon points="{pts(p3, p2, t2, t3)}" fill="{shade(side, 0.78)}"/>'
-                 f'<polygon points="{pts(p1, p2, t2, t1)}" fill="{shade(side, 0.9)}"/>'
-                 f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{top}"/>{haze}'
+                 f'<polygon points="{pts(p3, p2, t2, t3)}" fill="url(#sl{lv})"/>'
+                 f'<polygon points="{pts(p1, p2, t2, t1)}" fill="url(#sr{lv})"/>'
+                 f'<polygon points="{pts(t0, t1, t2, t3)}" fill="{top}" stroke="#ffffff" stroke-opacity="{th["edge"]}" stroke-width="0.8" stroke-linejoin="round"/>{haze}'
                  + '</g></g></g>')
     # spotlight label: month and its total, top left
     for i, key in enumerate(months):
@@ -248,8 +242,7 @@ def svg(th):
             else:
                 vis = f'values="0;0;1;1;0;0" keyTimes="0;{a0:.5f};{a0 + e:.5f};{b0 - e:.5f};{b0:.5f};1"'
             # label in the colour of its bar, as a pill in the page colour
-            kind = "top" if TOP and c[4] == TOP[4] else "streak" if len(STREAK) >= 2 and c in STREAK else c[3]
-            ink = th["ink"][kind]
+            ink = th["ink"][c[3]]
             o.append(f'<g opacity="0"><animate attributeName="opacity" {vis} begin="{start:.2f}s" dur="{loop:.2f}s" repeatCount="indefinite"/>'
                      f'<circle cx="{fx:.1f}" cy="{fy:.1f}" r="9" fill="{ink}" opacity="0.35">'
                      f'<animate attributeName="r" values="4;11;4" dur="1s" repeatCount="indefinite"/>'
@@ -271,7 +264,7 @@ def svg(th):
             anims = (f'<set attributeName="opacity" to="1" begin="{start:.2f}s"/>' if k else '')
             if not last_frame:
                 anims += f'<set attributeName="opacity" to="0" begin="{start + 0.08:.2f}s"/>'
-            col = STREAK_COL if label.startswith("longest streak") else TOP_COL if label == "most in one day" else th["fg"]
+            col = th["fg"]
             o.append(f'<text x="{cx}" y="{cy}" class="s" font-size="30" fill="{col}" opacity="{1 if k == 0 else 0}">{v:,}{anims}</text>')
         o.append(f'<text x="{cx}" y="{cy + 21}" class="i" font-size="12.5" fill="{th["sub"]}">{label}</text>')
     # legend, bottom left
@@ -281,10 +274,6 @@ def svg(th):
     for k in range(5):
         o.append(f'<rect x="{lx + 38 + k * 20}" y="{ly + 14}" width="15" height="15" rx="4" fill="{th["levels"][k]}"/>')
     o.append(f'<text x="{lx + 38 + 5 * 20 + 4}" y="{ly + 26}" class="m" font-size="11" fill="{th["mute"]}">More</text>')
-    o.append(f'<rect x="{lx}" y="{ly + 38}" width="15" height="15" rx="4" fill="{STREAK_COL}"/>'
-             f'<text x="{lx + 22}" y="{ly + 50}" class="m" font-size="11" fill="{th["mute"]}">Longest streak</text>'
-             f'<rect x="{lx + 140}" y="{ly + 38}" width="15" height="15" rx="4" fill="{TOP_COL}"/>'
-             f'<text x="{lx + 162}" y="{ly + 50}" class="m" font-size="11" fill="{th["mute"]}">Most in one day</text>')
     o.append('</svg>')
     return "\n".join(o)
 
