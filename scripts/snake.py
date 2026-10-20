@@ -122,19 +122,22 @@ while targets:
     cycle_next = CYCLE[(IDX[head] + 1) % AREA]    # always safe: the next cell on the cycle
     def in_the_way(c):                            # a day of a later level that is not eaten yet
         return c in targets and grid[c] != level
-    options = []
+    safe_moves = []
     for n in neighbours(head):
-        if blocked(t, n, 1) or in_the_way(n):
+        if blocked(t, n, 1):
             continue
         jump = ahead(head, n)
-        # the next cycle cell is always allowed; a shortcut only forward and well clear of the tail
+        # the next cycle cell is always allowed; a shortcut only forward and well clear of the tail,
         # and only moves that bring the goal closer, so a detour can never turn into a loop
         if (n == cycle_next or (L < AREA // 2 and 0 < jump < room - 3)) and ahead(n, goal) < ahead(head, goal):
-            options.append(n)
-    if options:
-        nxt = min(options, key=lambda n: ahead(n, goal))
+            safe_moves.append(n)
+    clear = [n for n in safe_moves if not in_the_way(n)]
+    if clear:
+        nxt = min(clear, key=lambda n: ahead(n, goal))
+    elif safe_moves:                              # boxed in by later days: eat the lightest one in the way
+        nxt = min(safe_moves, key=lambda n: (grid[n], ahead(n, goal)))
     else:
-        nxt = cycle_next                          # boxed in by later days: eat the one in the way
+        nxt = cycle_next
     route.append(nxt)
     if nxt in targets:                            # never crawl over a day, it is eaten when reached
         if grid[nxt] != level:
