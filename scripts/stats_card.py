@@ -569,66 +569,92 @@ def project_logos(project):
             out.append((label, lg))
     return out
 
-def project_card(t, pr, items, rows):
-    W = 320
-    H = 244 + rows * 30 + 14
+def wrap(text, width):
+    lines, cur = [], ""
+    for word in text.split():
+        if cur and len(cur) + 1 + len(word) > width:
+            lines.append(cur)
+            cur = word
+        else:
+            cur = f"{cur} {word}".strip()
+    return lines + [cur] if cur else lines
+
+
+PER_ROW = 7
+
+
+def card_layout(pr):
+    tag = wrap(pr["tagline"], 25)
+    points = [wrap(p, 31) for p in pr["points"]]
+    return tag, points
+
+
+def project_card(t, pr, items, rows, head_h):
+    W = 240
+    tag, points = card_layout(pr)
+    top = head_h
+    H = top + 40 + rows * 28 + 12
     ic = base64.b64encode(open(os.path.join(ROOT, pr["icon"]), "rb").read()).decode()
     esc = lambda x: x.replace("&", "&amp;").replace("<", "&lt;")
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{W}" height="{H}" viewBox="0 0 {W} {H}">', FONTS,
-         '<defs><clipPath id="ir"><rect x="24" y="58" width="48" height="48" rx="11"/></clipPath>'
+         '<defs><clipPath id="ir"><rect x="20" y="52" width="44" height="44" rx="10"/></clipPath>'
          f'<linearGradient id="ac" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{SKY}"/><stop offset="1" stop-color="{VIO}"/></linearGradient>'
          '<linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.5" stop-color="#fff" stop-opacity="0.9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
-         '<clipPath id="tb"><rect x="24" y="0.5" width="48" height="3" rx="1.5"/></clipPath>'
+         '<clipPath id="tb"><rect x="20" y="0.5" width="44" height="3" rx="1.5"/></clipPath>'
          '<linearGradient id="sweep" gradientUnits="userSpaceOnUse" x1="-60" y1="0" x2="0" y2="0">'
          '<stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>'
-         '<animateTransform attributeName="gradientTransform" type="translate" values="0 0;0 0;320 0;320 0" keyTimes="0;0.02;0.3;1" begin="1s" dur="6s" repeatCount="indefinite"/></linearGradient>'
+         '<animateTransform attributeName="gradientTransform" type="translate" values="0 0;0 0;240 0;240 0" keyTimes="0;0.02;0.3;1" begin="1s" dur="6s" repeatCount="indefinite"/></linearGradient>'
          '<linearGradient id="glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0.25" stop-color="#ffffff" stop-opacity="0"/>'
          '<stop offset="0.5" stop-color="#ffffff" stop-opacity="1"/><stop offset="0.75" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs>',
          f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="14" fill="{t["panel"]}" stroke="{t["line"]}"/>',
-         '<rect x="24" y="0.5" width="48" height="3" rx="1.5" fill="url(#ac)"/>'
-         '<rect x="24" y="0.5" width="18" height="3" fill="url(#shine)" opacity="0.8" clip-path="url(#tb)">'
-         '<animate attributeName="x" values="12;72;72" keyTimes="0;0.5;1" dur="5s" repeatCount="indefinite"/></rect>',
-         f'<text x="24" y="34" class="m" font-size="10" fill="{SKY}" letter-spacing="1.6">{pr["num"]} // PROJECT</text>']
+         '<rect x="20" y="0.5" width="44" height="3" rx="1.5" fill="url(#ac)"/>'
+         '<rect x="10" y="0.5" width="16" height="3" fill="url(#shine)" opacity="0.8" clip-path="url(#tb)">'
+         '<animate attributeName="x" values="10;64;64" keyTimes="0;0.5;1" dur="5s" repeatCount="indefinite"/></rect>',
+         f'<text x="20" y="31" class="m" font-size="9.5" fill="{SKY}" letter-spacing="1.4">{pr["num"]} // PROJECT</text>']
     st = pr["status"]
     scol = "#22c55e" if st == "LIVE" else "#f59e0b"
-    sw = len(st) * 6.4 + 26
-    o.append(f'<g transform="translate({W-24-sw:.0f},20)"><rect width="{sw:.0f}" height="20" rx="10" fill="{scol}" fill-opacity="0.1" stroke="{scol}" stroke-opacity="0.4"/>'
-             f'<circle cx="11" cy="10" r="3.2" fill="{scol}"/><text x="20" y="13.8" class="m" font-size="9.5" fill="{scol}" letter-spacing="0.7">{esc(st)}</text></g>')
+    sw = len(st) * 6 + 24
+    o.append(f'<g transform="translate({W-20-sw:.0f},17)"><rect width="{sw:.0f}" height="19" rx="9.5" fill="{scol}" fill-opacity="0.1" stroke="{scol}" stroke-opacity="0.4"/>'
+             f'<circle cx="10" cy="9.5" r="3" fill="{scol}"/><text x="18" y="13.2" class="m" font-size="9" fill="{scol}" letter-spacing="0.6">{esc(st)}</text></g>')
     if pr.get("icon_tile"):
-        o.append(f'<rect x="24" y="58" width="48" height="48" rx="11" fill="{pr["icon_tile"]}" stroke="{t["line"]}"/>'
-                 f'<image href="data:image/png;base64,{ic}" xlink:href="data:image/png;base64,{ic}" x="30" y="64" width="36" height="36"/>')
+        o.append(f'<rect x="20" y="52" width="44" height="44" rx="10" fill="{pr["icon_tile"]}" stroke="{t["line"]}"/>'
+                 f'<image href="data:image/png;base64,{ic}" xlink:href="data:image/png;base64,{ic}" x="25" y="57" width="34" height="34"/>')
     else:
-        o.append(f'<image href="data:image/png;base64,{ic}" xlink:href="data:image/png;base64,{ic}" x="24" y="58" width="48" height="48" clip-path="url(#ir)"/>')
-    # first half of each 6 s round: a light glides over the icon and the name, then over the logos below
-    o.append(f'<rect x="24" y="58" width="48" height="48" rx="11" fill="url(#glare)" opacity="0">'
+        o.append(f'<image href="data:image/png;base64,{ic}" xlink:href="data:image/png;base64,{ic}" x="20" y="52" width="44" height="44" clip-path="url(#ir)"/>')
+    o.append(f'<rect x="20" y="52" width="44" height="44" rx="10" fill="url(#glare)" opacity="0">'
              f'<animate attributeName="opacity" values="0;0;{t["wave"]};0;0" keyTimes="0;0.02;0.08;0.16;1" begin="1s" dur="6s" repeatCount="indefinite"/></rect>')
-    o.append(f'<text x="86" y="79" class="s" font-size="18" fill="url(#sweep)">{esc(pr["name"])}</text>')
-    o.append(f'<text x="86" y="79" class="s" font-size="18" fill="{t["fg"]}">{esc(pr["name"])}</text>'
-             f'<text x="86" y="98" class="i" font-size="12" fill="{t["sub"]}">{esc(pr["tagline"])}</text>')
-    y = 140
-    for ln in pr["points"]:
-        o.append(f'<rect x="24" y="{y-7}" width="5" height="5" rx="1" fill="url(#ac)"/><text x="37" y="{y}" class="i" font-size="12.5" fill="{t["sub"]}">{esc(ln)}</text>')
-        y += 24
-    o.append(f'<line x1="24" y1="208" x2="{W-24}" y2="208" stroke="{t["line"]}"/>'
-             f'<text x="24" y="233" class="m" font-size="9.5" fill="{t["mute"]}" letter-spacing="1.6">BUILT WITH</text>')
+    o.append(f'<text x="76" y="71" class="s" font-size="16" fill="{t["fg"]}">{esc(pr["name"])}</text>'
+             f'<text x="76" y="71" class="s" font-size="16" fill="url(#sweep)">{esc(pr["name"])}</text>')
+    for k, line in enumerate(tag):
+        o.append(f'<text x="76" y="{88 + k * 14}" class="i" font-size="11" fill="{t["sub"]}">{esc(line)}</text>')
+    y = 128
+    for lines in points:
+        o.append(f'<rect x="20" y="{y-7}" width="4.5" height="4.5" rx="1" fill="url(#ac)"/>')
+        for k, line in enumerate(lines):
+            o.append(f'<text x="32" y="{y + k * 15}" class="i" font-size="11.5" fill="{t["sub"]}">{esc(line)}</text>')
+        y += 15 * len(lines) + 7
+    o.append(f'<line x1="20" y1="{top}" x2="{W-20}" y2="{top}" stroke="{t["line"]}"/>'
+             f'<text x="20" y="{top + 24}" class="m" font-size="9" fill="{t["mute"]}" letter-spacing="1.4">BUILT WITH</text>')
     for i, (label, lg) in enumerate(items):
-        r, c = divmod(i, 9)
-        x, yy = 24 + c * 30.5, 244 + r * 30
+        r, c = divmod(i, PER_ROW)
+        x, yy = 20 + c * 29, top + 34 + r * 28
         wa = 0.45 + (c + r * 2) / 12 * 0.4
-        o.append(f'<rect x="{x:.1f}" y="{yy}" width="26" height="26" rx="6" fill="{t["tile"]}" stroke="{t["line"]}"/>'
-                 f'<image href="{lg}" x="{x+4:.1f}" y="{yy+4}" width="18" height="18"/>'
-                 f'<rect x="{x:.1f}" y="{yy}" width="26" height="26" rx="6" fill="url(#glare)" opacity="0">'
+        o.append(f'<rect x="{x:.1f}" y="{yy}" width="25" height="25" rx="6" fill="{t["tile"]}" stroke="{t["line"]}"/>'
+                 f'<image href="{lg}" x="{x+4:.1f}" y="{yy+4}" width="17" height="17"/>'
+                 f'<rect x="{x:.1f}" y="{yy}" width="25" height="25" rx="6" fill="url(#glare)" opacity="0">'
                  f'<animate attributeName="opacity" values="0;0;{t["wave"]};0;0" keyTimes="0;{wa:.3f};{wa + 0.06:.3f};{wa + 0.14:.3f};1" '
                  f'begin="1s" dur="6s" repeatCount="indefinite"/></rect>')
     o.append('</svg>')
     return "\n".join(o)
+
 
 with open(os.path.join(ROOT, "scripts", "projects.json")) as f:
     PROJECTS = json.load(f)
 for i, pr in enumerate(PROJECTS, 1):
     pr["num"] = f"{i:02d}"
     pr["items"] = project_logos(pr)
-CARD_ROWS = max((len(pr["items"]) + 8) // 9 for pr in PROJECTS)
+CARD_ROWS = max((len(pr["items"]) + PER_ROW - 1) // PER_ROW for pr in PROJECTS)
+CARD_HEAD = max(128 + sum(15 * len(l) + 7 for l in card_layout(pr)[1]) + 2 for pr in PROJECTS)
 for name, t in THEMES.items():
     with open(os.path.join(ROOT, "assets", f"stats-{name}.svg"), "w") as f:
         f.write(card(t))
@@ -638,7 +664,7 @@ for name, t in THEMES.items():
         f.write(stack_card(t, STACK))
     for pr in PROJECTS:
         with open(os.path.join(ROOT, "assets", f"card-{pr['slug']}-{name}.svg"), "w") as f:
-            f.write(project_card(t, pr, pr["items"], CARD_ROWS))
+            f.write(project_card(t, pr, pr["items"], CARD_ROWS, CARD_HEAD))
 import datetime
 md = ["# Languages and tooling", "",
       f"Updated {datetime.date.today():%d %B %Y}. Counted over my own repositories, {', '.join(EXTRA_ORGS)}"
