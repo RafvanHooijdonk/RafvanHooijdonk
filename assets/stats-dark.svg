@@ -28,7 +28,7 @@
 <line x1="640" y1="32" x2="640" y2="218" stroke="#1e293b"/>
 <text x="672" y="44" class="m" font-size="11" fill="#0ea5e9" letter-spacing="1.8">LAST 12 MONTHS</text><text x="968" y="44" class="m" font-size="10.5" fill="#64748b" text-anchor="end">as of 21/10/2026 23:59</text>
 <text x="672" y="104" class="s" font-size="30" fill="#f8fafc">1,054</text><text x="672" y="126" class="i" font-size="12.5" fill="#94a3b8">contributions</text>
-<text x="832" y="104" class="s" font-size="30" fill="#f8fafc">1,044</text><text x="832" y="126" class="i" font-size="12.5" fill="#94a3b8">commits incl. private</text>
-<text x="672" y="186" class="s" font-size="30" fill="#f8fafc">6</text><text x="672" y="208" class="i" font-size="12.5" fill="#94a3b8">pull requests</text>
+<text x="832" y="104" class="s" font-size="30" fill="#f8fafc">891</text><text x="832" y="126" class="i" font-size="12.5" fill="#94a3b8">commits incl. private</text>
+<text x="672" y="186" class="s" font-size="30" fill="#f8fafc">31</text><text x="672" y="208" class="i" font-size="12.5" fill="#94a3b8">pull requests</text>
 <text x="832" y="186" class="s" font-size="30" fill="#f8fafc">27</text><text x="832" y="208" class="i" font-size="12.5" fill="#94a3b8">repositories</text>
 </svg>
