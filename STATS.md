@@ -13,7 +13,6 @@ Updated 22 October 2026. Counted over my own repositories, Alpha-Stock and Fleet
 | CSS | 6.3% |
 | C# | 1.5% |
 | Pug | 0.7% |
-| PHP | 0.0% |
 
 Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile, ShaderLab, Shell.
 

@@ -670,7 +670,7 @@ md = ["# Languages and tooling", "",
       f"Updated {datetime.date.today():%d %B %Y}. Counted over my own repositories, {', '.join(EXTRA_ORGS)}"
       + (f" and {', '.join(e['name'] for e in EXTRA_REPOS)} (tools only)" if EXTRA_REPOS else "") + ", forks excluded.", "",
       "## Languages", "", "| Language | Share |", "| --- | --- |"]
-md += [f"| {n} | {s / total * 100:.1f}% |" for n, s in ranked]
+md += [f"| {n} | {s / total * 100:.1f}% |" for n, s in ranked if s / total >= 0.0005]
 md += ["", f"Not counted: {', '.join(sorted(IGNORED))}.", "", "## Tooling and testing", "",
        f"{test_files:,} test files found.", ""]
 for g in GROUPS:
