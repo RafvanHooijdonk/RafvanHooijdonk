@@ -1,15 +1,15 @@
 # Languages and tooling
 
-Updated 06 November 2026. Counted over my own repositories, Alpha-Stock and FleetBuddy (tools only), forks excluded.
+Updated 07 November 2026. Counted over my own repositories, Alpha-Stock and FleetBuddy (tools only), forks excluded.
 
 ## Languages
 
 | Language | Share |
 | --- | --- |
-| TypeScript | 45.8% |
-| JavaScript | 25.8% |
-| Python | 11.6% |
-| HTML | 8.6% |
+| TypeScript | 46.2% |
+| JavaScript | 25.6% |
+| Python | 11.5% |
+| HTML | 8.5% |
 | CSS | 6.2% |
 | C# | 1.4% |
 | Pug | 0.6% |
@@ -35,9 +35,9 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 | Tool | Repositories |
 | --- | --- |
-| GitHub Actions | 18 |
+| GitHub Actions | 20 |
+| ESLint | 8 |
 | Docker | 7 |
-| ESLint | 7 |
 | nodemon | 3 |
 | Swagger | 2 |
 | NGINX | 1 |
@@ -46,14 +46,14 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 | Tool | Repositories |
 | --- | --- |
-| Node.js | 13 |
-| NestJS | 7 |
-| React | 7 |
-| RxJS | 7 |
-| Vite | 7 |
+| Node.js | 14 |
+| NestJS | 8 |
+| React | 8 |
+| RxJS | 8 |
+| Vite | 8 |
 | .NET | 5 |
+| Express | 4 |
 | Tailwind | 4 |
-| Express | 3 |
 | FastAPI | 3 |
 | Axios | 2 |
 | Mongoose | 2 |
