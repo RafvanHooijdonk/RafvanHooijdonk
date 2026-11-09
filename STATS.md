@@ -1,12 +1,12 @@
 # Languages and tooling
 
-Updated 08 November 2026. Counted over my own repositories, Alpha-Stock and FleetBuddy (tools only), forks excluded.
+Updated 09 November 2026. Counted over my own repositories, Alpha-Stock and FleetBuddy (tools only), forks excluded.
 
 ## Languages
 
 | Language | Share |
 | --- | --- |
-| TypeScript | 46.3% |
+| TypeScript | 46.4% |
 | JavaScript | 25.7% |
 | Python | 11.3% |
 | HTML | 8.4% |
@@ -18,7 +18,7 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 ## Tooling and testing
 
-856 test files found.
+859 test files found.
 
 ### Testing
 
@@ -68,7 +68,7 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 | Tool | Repositories |
 | --- | --- |
-| MySQL | 5 |
+| MySQL | 6 |
 | NumPy | 4 |
 | Pandas | 4 |
 | scikit-learn | 3 |
