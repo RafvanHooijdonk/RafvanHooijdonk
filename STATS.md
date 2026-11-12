@@ -1,24 +1,24 @@
 # Languages and tooling
 
-Updated 11 November 2026. Counted over my own repositories, Alpha-Stock and FleetBuddy (tools only), forks excluded.
+Updated 12 November 2026. Counted over my own repositories, Alpha-Stock and FleetBuddy (tools only), forks excluded.
 
 ## Languages
 
 | Language | Share |
 | --- | --- |
-| TypeScript | 47.8% |
-| JavaScript | 25.0% |
+| TypeScript | 49.6% |
+| JavaScript | 23.8% |
 | Python | 10.8% |
-| HTML | 8.1% |
-| CSS | 6.5% |
-| C# | 1.3% |
+| HTML | 7.7% |
+| CSS | 6.4% |
+| C# | 1.2% |
 | Pug | 0.6% |
 
 Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile, ShaderLab, Shell.
 
 ## Tooling and testing
 
-869 test files found.
+887 test files found.
 
 ### Testing
 
@@ -35,9 +35,9 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 | Tool | Repositories |
 | --- | --- |
-| GitHub Actions | 20 |
+| GitHub Actions | 21 |
+| Docker | 8 |
 | ESLint | 8 |
-| Docker | 7 |
 | nodemon | 3 |
 | Swagger | 2 |
 | NGINX | 1 |
@@ -46,11 +46,11 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 | Tool | Repositories |
 | --- | --- |
-| Node.js | 14 |
-| NestJS | 8 |
-| React | 8 |
-| RxJS | 8 |
-| Vite | 8 |
+| Node.js | 15 |
+| NestJS | 9 |
+| React | 9 |
+| RxJS | 9 |
+| Vite | 9 |
 | .NET | 5 |
 | Express | 4 |
 | Tailwind | 4 |
@@ -68,7 +68,7 @@ Not counted: Batchfile, Dockerfile, HLSL, Jupyter Notebook, PowerShell, Procfile
 
 | Tool | Repositories |
 | --- | --- |
-| MySQL | 6 |
+| MySQL | 7 |
 | NumPy | 4 |
 | Pandas | 4 |
 | scikit-learn | 3 |
