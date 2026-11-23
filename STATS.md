@@ -1,13 +1,13 @@
 # Languages and tooling
 
-Updated 22 November 2026. Counted over my own repositories, Alpha-Stock and FleetBuddy (tools only), forks excluded.
+Updated 23 November 2026. Counted over my own repositories, Alpha-Stock and FleetBuddy (tools only), forks excluded.
 
 ## Languages
 
 | Language | Share |
 | --- | --- |
-| TypeScript | 51.8% |
-| JavaScript | 22.4% |
+| TypeScript | 51.6% |
+| JavaScript | 22.6% |
 | Python | 11.9% |
 | HTML | 6.6% |
 | CSS | 5.8% |
